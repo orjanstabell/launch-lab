@@ -23,7 +23,7 @@ func mouse(pos: Vector2, button := -1, pressed := false):
 	ev.position = pos; ev.global_position = pos
 	main._unhandled_input(ev)   # (headless window is 64×64, so push_input would rescale)
 ## A key press and release through the GUI, so a focused text box gets it first.
-func key(code: int, character: String):
+func key(code: Key, character: String):
 	var ev := InputEventKey.new()
 	ev.keycode = code; ev.unicode = character.unicode_at(0); ev.pressed = true
 	Input.parse_input_event(ev)

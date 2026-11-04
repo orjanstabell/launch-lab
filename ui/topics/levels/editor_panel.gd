@@ -120,15 +120,15 @@ func _save():
 	if level_name == "":
 		_status.text = "Give the level a name first."
 		return
-	var renamed := _loaded_name != "" and LevelStore.path_for(_loaded_name) != LevelStore.path_for(level_name)
-	var is_other_level := _loaded_name == "" or renamed
+	var is_rename := _loaded_name != "" and LevelStore.path_for(_loaded_name) != LevelStore.path_for(level_name)
+	var is_other_level := _loaded_name == "" or is_rename
 	if is_other_level and LevelStore.exists(level_name):
 		_status.text = "\"%s\" is already taken by another level: pick another name or use Copy." % level_name
 		return
 	if not LevelStore.save(_captured(level_name)):
 		_status.text = "Couldn't save \"%s\"." % level_name
 		return
-	if renamed:
+	if is_rename:
 		LevelStore.delete(_loaded_name)   # only now that the new file is safely written
 	_loaded_name = level_name
 	_status.text = "Saved \"%s\" (find it in Levels)." % level_name
