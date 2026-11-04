@@ -106,6 +106,7 @@ autoload/physics_params.gd  the values you edit, and the bird that's flying
 autoload/reveal.gd        hiding values: every number on screen is formatted here
 scenes/bird.gd            follows kinematics.gd while flying; abilities; the hand-over
                           to the physics engine on the first hit
+scenes/bird_art.gd        how every bird looks (also drawn on the slingshot)
 ui/topics/                one folder per tab: its dock panel, formulas and overlays
 practice/problems/        one file per kind of practice problem
 levels/                   level format, built-in levels, saving and loading
