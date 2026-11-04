@@ -22,6 +22,13 @@ func mouse(pos: Vector2, button := -1, pressed := false):
 		ev = InputEventMouseButton.new(); ev.button_index = button; ev.pressed = pressed
 	ev.position = pos; ev.global_position = pos
 	main._unhandled_input(ev)   # (headless window is 64×64, so push_input would rescale)
+## A key press and release through the GUI, so a focused text box gets it first.
+func key(code: int, character: String):
+	var ev := InputEventKey.new()
+	ev.keycode = code; ev.unicode = character.unicode_at(0); ev.pressed = true
+	Input.parse_input_event(ev)
+	var up := ev.duplicate(); up.pressed = false
+	Input.parse_input_event(up)
 func run():
 	await frames(20)
 	P.set_launch_mode("spring")
@@ -58,5 +65,18 @@ func run():
 	mouse(screen_of(Vector2(0, P.values["y0"])), MOUSE_BUTTON_LEFT, true)
 	await frames(2)
 	ok("no grabbing while a practice problem locks things", not main.dragging)
+	# Type a speed, then click the sky: the value is applied and Space launches again
+	# (the number box used to keep the keyboard, so Space typed a space into it).
+	P.set_inputs_locked(false); main.reset_level(); await frames(5)
+	var speed_box: LineEdit = main.find_children("*", "ParamPanel", true, false)[0]._rows["v0"]["spin"].get_line_edit()
+	speed_box.grab_focus(); await frames(1)
+	speed_box.select_all()
+	for i in 2:
+		key(KEY_2, "2"); await frames(1)
+	mouse(screen_of(Vector2(10, 8)), MOUSE_BUTTON_LEFT, true)
+	mouse(screen_of(Vector2(10, 8)), MOUSE_BUTTON_LEFT, false)
+	await frames(2)
+	key(KEY_SPACE, " "); await frames(2)
+	ok("typed v₀ = 22 and clicked the sky: applied (v₀ = %.1f) and Space launches" % P.values["v0"], is_equal_approx(P.values["v0"], 22.0) and P.is_flying())
 	print("DONE, fails=%d" % fails)
 	quit(fails)

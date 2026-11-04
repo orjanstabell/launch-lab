@@ -89,6 +89,10 @@ func _process(delta: float):
 
 
 func _unhandled_input(event: InputEvent):
+	# A click in the world ends typing in a number box (which applies the value),
+	# so Space and the other keys work as shortcuts again.
+	if event is InputEventMouseButton and event.pressed:
+		get_viewport().gui_release_focus()
 	# Editing the level: the mouse belongs to the editor.
 	if editor.active and event is InputEventMouse:
 		editor.handle_input(event, _event_meters(event))
