@@ -338,7 +338,10 @@ your number becomes something you can see next to what really happens:
   practice picker trimmed with "…", long dock lines split, and dock labels end in "…" instead of growing. Test:
   `tests/scenarios/dock_fits.gd` (every tab, bird, practice problem and level).
 - Level files from Import… are checked: broken pieces and unknown settings are skipped instead of crashing.
-- F11 fullscreen (Esc leaves it). The monospace font falls back to Consolas / Menlo on Windows / macOS.
+- A 40 m/s bird vanished mid-air at x ≈ 77 m (birds were removed past 4000 px); now only past the ends of the
+  ground. The dotted path runs to the end of the ground and draws the way down from very high arcs too.
+- Clicking in the world ends typing in a number box (the value is applied and Space launches again).
+- F11 fullscreen (Esc leaves it). The monospace font falls back to Consolas / Menlo on Windows / macOS. Own icon.
 - Zero GDScript warnings in the editor (also with every warning treated as an error).
 - Open question: the "Yellow bird: when to tap" problem and the "Yellow bird: straight shot" level fly the purple
   Custom bird with g → 0, while the Yellow bird itself is the speed boost. Rename them, or give them the yellow bird?
