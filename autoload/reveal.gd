@@ -71,7 +71,7 @@ func randomize_hidden():
 func live(value: float, depends_on: Array, width := 6, decimals := 2) -> String:
 	var text := "?"
 	if not any_hidden(depends_on):
-		text = "∞" if is_inf(value) else ("%." + str(decimals) + "f") % value
+		text = "∞" if is_inf(value) else ("%." + str(decimals) + "f") % _no_negative_zero(value, decimals)
 	return text.lpad(width)
 
 
@@ -81,4 +81,9 @@ func num(value: float, depends_on: Array, decimals := 2) -> String:
 		return "?"
 	if is_inf(value):
 		return "∞"
-	return String.num(value, decimals)
+	return String.num(_no_negative_zero(value, decimals), decimals)
+
+
+## A tiny rounding error like −0.000001 would show as "-0.00": make it 0.
+func _no_negative_zero(value: float, decimals: int) -> float:
+	return 0.0 if absf(value) < 0.5 * pow(10.0, -decimals) else value
