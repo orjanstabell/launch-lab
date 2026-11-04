@@ -1,0 +1,106 @@
+class_name LevelPresets
+extends RefCounted
+## The levels that come with the game, each built around one idea.
+## (Saved levels live in user://levels/, see LevelStore.)
+
+
+static func all() -> Array[Dictionary]:
+	return [tower(), moon(), two_angles(), hidden_gravity(), high_arc_only(), three_pigs(), egg_drop(), heavy_spring(), yellow_straight()]
+
+
+## The default level: a small tower with the pig on top.
+static func tower() -> Dictionary:
+	var level := Level.blank("Tower")
+	level["description"] = "Knock the pig off its tower, then take on the big pig (it survives one hit)."
+	_tower(level, 25.0)
+	Level.add_pig(level, Vector2(29.5, Pig.BIG_RADIUS_M), true)
+	return level
+
+
+static func moon() -> Dictionary:
+	var level := Level.blank("Moon gravity")
+	level["description"] = "On the Moon g = 1.62 m/s². Clear the wall and hit the pig."
+	level["launch"] = {"g": 1.62, "v0": 10.0, "theta": 45.0, "y0": 0.0, "m": 1.0}
+	Level.add_block(level, Vector2(0.4, 6.0), Vector2(22.0, 3.0))
+	Level.add_pig(level, Vector2(38.0, 0.4))
+	return level
+
+
+static func two_angles() -> Dictionary:
+	var level := Level.blank("Same range, two angles")
+	level["description"] = "v₀ = 16 m/s is fixed. Two different angles hit the pig: find both."
+	level["launch"] = {"g": 9.81, "v0": 16.0, "theta": 20.0, "y0": 0.0, "m": 1.0}
+	Level.add_pig(level, Vector2(22.0, 0.4))
+	return level
+
+
+static func hidden_gravity() -> Dictionary:
+	var level := Level.blank("Find the hidden g")
+	level["description"] = "g is hidden and random. Measure it with a test shot, then hit the pig."
+	level["launch"] = {"v0": 14.0, "theta": 45.0, "y0": 0.0, "m": 1.0}
+	level["hidden"] = ["g", "predict"]
+	level["randomize_hidden"] = true
+	_tower(level, 24.0)
+	return level
+
+
+static func high_arc_only() -> Dictionary:
+	var level := Level.blank("High arc only")
+	level["description"] = "v₀ = 17 m/s. The wall blocks the low arc: find the high one."
+	level["launch"] = {"g": 9.81, "v0": 17.0, "theta": 30.0, "y0": 0.0, "m": 1.0}
+	Level.add_block(level, Vector2(0.4, 7.0), Vector2(19.0, 3.5))
+	Level.add_pig(level, Vector2(22.0, 0.4))
+	return level
+
+
+static func three_pigs() -> Dictionary:
+	var level := Level.blank("Three pigs, one blue bird")
+	level["description"] = "Use the blue bird's split to hit all three pigs."
+	level["launch"] = {"g": 9.81, "v0": 17.0, "theta": 45.0, "y0": 0.0, "m": 1.0}
+	level["bird_type"] = "blue"
+	for x in [24.0, 27.0, 30.0]:
+		Level.add_block(level, Vector2(1.0, 1.0), Vector2(x, 0.5))
+		Level.add_pig(level, Vector2(x, 1.4))
+	return level
+
+
+static func egg_drop() -> Dictionary:
+	var level := Level.blank("Egg drop")
+	level["description"] = "The pig hides in a deep pit. Fly Matilda over it and drop her egg in. (The egg keeps her forward speed!)"
+	level["launch"] = {"g": 9.81, "v0": 17.0, "theta": 50.0, "y0": 0.0, "m": 1.0}
+	level["bird_type"] = "matilda"
+	Level.add_block(level, Vector2(0.4, 3.0), Vector2(21.0, 1.5))
+	Level.add_block(level, Vector2(0.4, 3.0), Vector2(26.0, 1.5))
+	Level.add_pig(level, Vector2(23.5, 0.4))
+	level["topic"] = 2
+	return level
+
+
+static func heavy_spring() -> Dictionary:
+	var level := Level.blank("Spring: heavy bird")
+	level["description"] = "A 3 kg bird in the spring slingshot: how far must you pull to reach the pig?"
+	level["launch"] = {"g": 9.81, "theta": 40.0, "y0": 1.0, "m": 3.0}
+	level["launch_mode"] = "spring"
+	level["spring"] = {"k": 800.0, "pull": 0.6}
+	_tower(level, 26.0)
+	return level
+
+
+static func yellow_straight() -> Dictionary:
+	var level := Level.blank("Yellow bird: straight shot")
+	level["description"] = "Tap the yellow bird (g → 0) at the right moment to fly straight at the pig."
+	level["launch"] = {"g": 9.81, "v0": 18.0, "theta": 60.0, "y0": 0.0, "m": 1.0}
+	level["bird_type"] = "custom"
+	level["ability_on"] = {"g": true, "v0": false, "theta": false, "m": false}
+	level["ability"] = {"g": 0.0}
+	Level.add_block(level, Vector2(1.0, 8.0), Vector2(24.0, 4.0))   # a tall pillar
+	Level.add_pig(level, Vector2(24.0, 8.4))
+	return level
+
+
+## Two posts and a plank, with the pig on top (the plank's top is at 1.9 m).
+static func _tower(level: Dictionary, x: float):
+	Level.add_block(level, Vector2(0.3, 1.6), Vector2(x - 1.0, 0.8))
+	Level.add_block(level, Vector2(0.3, 1.6), Vector2(x + 1.0, 0.8))
+	Level.add_block(level, Vector2(2.8, 0.3), Vector2(x, 1.75))
+	Level.add_pig(level, Vector2(x, 2.3))
