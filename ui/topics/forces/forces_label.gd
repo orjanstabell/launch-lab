@@ -30,11 +30,14 @@ func _build_lines() -> Array:
 			"F = m·g = %s N  (straight down: Fx = 0)" % force_text,
 			"a = F/m = %s m/s² = g  (mass cancels out)" % accel_text,
 		]
+		# Two short lines each, so they fit the dock.
 		if spring_waiting:
-			compact.append("Spring (pulled back): F = k·Δx = %s N, so a = F/m = %s m/s² at release" % [spring_text, Reveal.num(spring_force / PhysicsParams.values["m"], ["a", "k", "pull", "m"])])
+			compact.append("Spring pulled back: F = k·Δx = %s N" % spring_text)
+			compact.append("  at release a = F/m = %s m/s²" % Reveal.num(spring_force / PhysicsParams.values["m"], ["a", "k", "pull", "m"]))
 		if is_instance_valid(bird) and bird.burning():
 			var thrust := bird.segment.exhaust_speed * bird.segment.burn_rate
-			compact.append("Rocket: thrust F = v_e·ṁ = %s N, m = %s kg → a = F/m = %s m/s² (rises as it burns)" % [Reveal.num(thrust, ["F"]), Reveal.live(bird.mass_now(), ["m"], 5), Reveal.live(thrust / bird.mass_now(), ["a"], 6)])
+			compact.append("Rocket thrust F = v_e·ṁ = %s N, m = %s kg" % [Reveal.num(thrust, ["F"]), Reveal.live(bird.mass_now(), ["m"], 5)])
+			compact.append("  a = F/m = %s m/s² (grows as the fuel burns)" % Reveal.live(thrust / bird.mass_now(), ["a"], 6))
 		return compact
 	var lines := [
 		heading,

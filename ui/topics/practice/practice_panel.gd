@@ -42,6 +42,9 @@ func _ready():
 	_picker = OptionButton.new()
 	_picker.focus_mode = Control.FOCUS_NONE
 	_picker.custom_minimum_size.x = 380
+	_picker.fit_to_longest_item = false   # the longest titles would push the dock off screen
+	_picker.clip_text = true
+	_picker.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_picker.tooltip_text = "The kind of problem. \"Random\" picks a kind for you (from any topic, or one topic)."
 	# Item metadata: a String = "random kind from this topic" ("" = any topic),
 	# an int = that kind (index into ProblemTypes.ALL).
@@ -84,6 +87,7 @@ func _ready():
 	_solution_button = _add_button(_answer_row, "Show solution", show_solution, "Show the answer, the worked steps (over the sky), and the correct path")
 
 	_feedback = Label.new()
+	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART   # two answers + "try again" can be long
 	add_child(_feedback)
 
 	visibility_changed.connect(func(): if not is_visible_in_tree(): end_problem())

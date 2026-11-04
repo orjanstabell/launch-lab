@@ -23,7 +23,7 @@ func _ready():
 	_spin.value_changed.connect(_on_changed)
 	add_child(_spin)
 	var hint := Label.new()
-	hint.text = "0 = sticky · 1 = perfectly bouncy (next launch)"
+	hint.text = "0 = sticky, 1 = bouncy (next launch)"
 	hint.modulate = Color(1, 1, 1, 0.6)
 	add_child(hint)
 	PhysicsParams.values_changed.connect(_refresh)

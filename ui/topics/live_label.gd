@@ -12,6 +12,8 @@ extends Label
 ##     panel keeps its size instead of jumping around
 ##   - the text is only replaced when it actually changed (no relayout otherwise),
 ##     and nothing is rebuilt while the label is hidden
+##   - in the dock it never gets wider than the panel: a line that's too long
+##     ends in "…" instead of pushing the other columns off the screen
 
 var details := false
 
@@ -19,9 +21,13 @@ var details := false
 func _init(show_details := false):
 	details = show_details
 	var mono := SystemFont.new()
-	mono.font_names = PackedStringArray(["JetBrainsMono Nerd Font", "Liberation Mono", "DejaVu Sans Mono", "monospace"])
+	# Consolas (Windows) and Menlo (macOS) are always installed there, so the
+	# numbers stay aligned on a lecture-room PC too.
+	mono.font_names = PackedStringArray(["JetBrainsMono Nerd Font", "Consolas", "Menlo", "Liberation Mono", "DejaVu Sans Mono", "monospace"])
 	add_theme_font_override("font", mono)
 	add_theme_font_size_override("font_size", 17)
+	if not details:
+		text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 
 
 func _process(_delta: float):
