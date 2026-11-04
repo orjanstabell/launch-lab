@@ -70,9 +70,13 @@ func run():
 	await frames(2)
 	# Save / rename / copy / delete
 	var store = load("res://levels/level_store.gd")
+	for file in DirAccess.get_files_at(store.FOLDER):   # leftovers from a run that failed half-way
+		if file.begins_with("zz_"):
+			DirAccess.remove_absolute(store.FOLDER + file)
 	levels_panel._name.text = "zz test level"
 	levels_panel._task.text = "Test task"
 	P.set_value("g", 5.5)
+	P.set_rocket_value("fuel", 2.0)
 	levels_panel._save()
 	ok("saved", store.exists("zz test level"))
 	var back = store.read(store.path_for("zz test level"))
@@ -98,6 +102,15 @@ func run():
 	var imported = store.read(path)
 	DirAccess.remove_absolute(path)
 	ok("export/import round trip", imported["name"] == "zz exported" and imported["pigs"].size() == 1)
+	# Importing a level whose name is taken saves it as a copy, never over the saved one
+	var import_panel = main.topics[5].levels_panel
+	var clash = store.read(store.path_for("zz test level renamed"))
+	clash["description"] = "Imported task"
+	import_panel._import_level(clash)
+	ok("import under a taken name keeps the saved level and adds a copy (%s)" % import_panel._status.text,
+		store.read(store.path_for("zz test level renamed"))["description"] == "Test task"
+		and store.read(store.path_for("zz test level renamed (copy)"))["description"] == "Imported task")
+	store.delete("zz test level renamed (copy)")
 	# A broken or hand-edited file: the bad parts are skipped, the rest loads
 	var broken_path = "user://test_broken_level.json"
 	var broken := FileAccess.open(broken_path, FileAccess.WRITE)
@@ -116,8 +129,10 @@ func run():
 		sane["blocks"].size() == 1 and sane["pigs"].size() == 1 and P.bird_type == bird_before and P.launch_mode == "speed" and is_equal_approx(P.values["theta"], 30.0) and P.split["pieces"] >= 2 and main.current_topic == 0)
 	# load the saved level back
 	P.set_value("g", 9.81)
+	P.set_rocket_value("fuel", 0.5)
 	main.load_level(store.read(store.path_for("zz test level renamed")))
-	ok("loading a saved level restores its g (%.2f) and banner" % P.values["g"], is_equal_approx(P.values["g"], 5.5) and "Test task" in main.banner.text)
+	ok("loading a saved level restores its g (%.2f), rocket fuel (%.2f) and banner" % [P.values["g"], P.rocket["fuel"]],
+		is_equal_approx(P.values["g"], 5.5) and is_equal_approx(P.rocket["fuel"], 2.0) and "Test task" in main.banner.text)
 	store.delete("zz test level renamed")
 	# multi-pig message
 	main.load_level(presets[5])

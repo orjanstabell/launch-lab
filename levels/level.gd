@@ -4,7 +4,7 @@ extends RefCounted
 ##   name, description (the task shown to the student)
 ##   blocks: [{"x", "y", "w", "h"}]   centers and sizes in meters
 ##   pigs:   [{"x", "y"}]             centers in meters ("big": true for a big pig, "mass" in kg)
-##   launch: launch values, launch_mode, spring, bird_type, ability, ability_on, split
+##   launch: launch values, launch_mode, spring, bird_type, ability, ability_on, split, rocket, egg
 ##   hidden: Reveal symbols to hide; randomize_hidden: give them random values on load
 ##   target: [x, y] for solve mode; topic: which topic tab to show
 ## capture() reads the current settings into a level; apply_settings() does the reverse.
@@ -49,6 +49,8 @@ static func capture(objects: Dictionary, topic: int) -> Dictionary:
 	level["ability"] = PhysicsParams.ability.duplicate()
 	level["ability_on"] = PhysicsParams.ability_on.duplicate()
 	level["split"] = PhysicsParams.split.duplicate()
+	level["rocket"] = PhysicsParams.rocket.duplicate()
+	level["egg"] = PhysicsParams.egg.duplicate()
 	level["elasticity"] = PhysicsParams.elasticity
 	level["target"] = [PhysicsParams.target.x, PhysicsParams.target.y]
 	level["topic"] = topic
@@ -82,6 +84,12 @@ static func apply_settings(level: Dictionary):
 				PhysicsParams.set_ability_on(key, ability_on[key])
 	for key in _known_numbers(level.get("ability"), PhysicsParams.ABILITY_DEFINITIONS):
 		PhysicsParams.set_ability_value(key, level["ability"][key])
+	for key in _known_numbers(level.get("rocket"), PhysicsParams.ROCKET_DEFINITIONS):
+		PhysicsParams.set_rocket_value(key, level["rocket"][key])
+	for key in _known_numbers(level.get("egg"), PhysicsParams.EGG_DEFINITIONS):
+		PhysicsParams.set_egg_value(key, level["egg"][key])
+	if level.get("egg") is Dictionary and level["egg"].get("straight_down") is bool:
+		PhysicsParams.set_egg_straight_down(level["egg"]["straight_down"])
 	var split: Variant = level.get("split")
 	if split is Dictionary:
 		for key in split:

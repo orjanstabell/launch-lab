@@ -139,6 +139,8 @@ func _import_level(level: Dictionary):
 	if level.is_empty():
 		_status.text = "That file isn't a level."
 		return
+	if LevelStore.exists(level["name"]):   # never replace a level that's already saved
+		level["name"] = LevelStore.unused_name(level["name"] + " (copy)")
 	if not LevelStore.save(level):
 		_status.text = "Couldn't save \"%s\"." % level["name"]
 		return

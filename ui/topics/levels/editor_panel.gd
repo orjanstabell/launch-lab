@@ -135,9 +135,7 @@ func _save():
 
 
 func _copy():
-	var level_name := _name.text.strip_edges() + " (copy)"
-	while LevelStore.exists(level_name):
-		level_name += "+"
+	var level_name := LevelStore.unused_name(_name.text.strip_edges() + " (copy)")
 	if not LevelStore.save(_captured(level_name)):
 		_status.text = "Couldn't save \"%s\"." % level_name
 		return

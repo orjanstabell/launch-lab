@@ -29,10 +29,21 @@ static func delete(level_name: String):
 	var path := path_for(level_name)
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
+		if OS.has_feature("web"):
+			# shortcut: the browser only stores user:// changes after a file is written, and a
+			# delete isn't one, so write a tiny file to make it stick. Drop it once Godot syncs deletes.
+			FileAccess.open(FOLDER + ".sync", FileAccess.WRITE)
 
 
 static func exists(level_name: String) -> bool:
 	return FileAccess.file_exists(path_for(level_name))
+
+
+## `level_name`, with "+" added until no saved level uses it.
+static func unused_name(level_name: String) -> String:
+	while exists(level_name):
+		level_name += "+"
+	return level_name
 
 
 ## A safe file name from the level name ("Moon gravity!" → "moon_gravity.json").
