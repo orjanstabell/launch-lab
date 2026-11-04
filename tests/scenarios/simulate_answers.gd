@@ -93,9 +93,12 @@ func run():
 
 		var right := []
 		var wrong := []
-		for value in problem.correct.slice(0, problem.answers.size()):
+		for i in problem.answers.size():
+			var value: float = problem.correct[i]
 			right.append(value)
-			wrong.append(value * 1.3 + 0.5)
+			# 30% off, but angles 15° off: near 0° cos barely changes, so 30% of a
+			# small random angle (say 10° → 13.5°) can fly almost the same path.
+			wrong.append(value + 15.0 if problem.answers[i]["unit"] == "°" else value * 1.3 + 0.5)
 		var r = await attempt(panel, right)
 		ok("%s, right answer: finished=%s, '%s'" % [name, r["finished"], main.message.text], r["finished"] and main.message.text.begins_with("✓"))
 		if has_ghost or problem.show_com:
