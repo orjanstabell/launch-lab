@@ -20,11 +20,9 @@ static func list() -> Array[Dictionary]:
 	return levels
 
 
-static func save(level: Dictionary) -> String:
+static func save(level: Dictionary) -> bool:
 	DirAccess.make_dir_recursive_absolute(FOLDER)
-	var path := path_for(level["name"])
-	write(path, level)
-	return path
+	return write(path_for(level["name"]), level)
 
 
 static func delete(level_name: String):
@@ -45,10 +43,13 @@ static func path_for(level_name: String) -> String:
 	return FOLDER + (safe if safe.strip_edges() != "" else "level") + ".json"
 
 
-static func write(path: String, level: Dictionary):
+## False if the file couldn't be written (e.g. a write-protected USB stick).
+static func write(path: String, level: Dictionary) -> bool:
 	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file:
-		file.store_string(to_json(level))
+	if file == null:
+		return false
+	file.store_string(to_json(level))
+	return true
 
 
 static func to_json(level: Dictionary) -> String:

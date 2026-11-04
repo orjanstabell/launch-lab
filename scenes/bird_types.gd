@@ -8,7 +8,7 @@ extends RefCounted
 ##   "rocket": fires a rocket along its heading (settings in PhysicsParams.rocket)
 ##   "egg":    Matilda throws an egg straight down and recoils up (PhysicsParams.egg)
 ## "hidden": not offered in the bird picker (the egg is only ever a piece).
-## "shape" and "style" are only how it's drawn (see Bird.draw_bird); every bird
+## "shape" and "style" are only how it's drawn (see BirdArt.draw_bird); every bird
 ## collides as a circle.
 
 const TYPES := {

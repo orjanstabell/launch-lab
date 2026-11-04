@@ -15,7 +15,8 @@ extends Label
 ##   - in the dock it never gets wider than the panel: a line that's too long
 ##     ends in "…" instead of pushing the other columns off the screen
 
-## Bundled, because a browser can't use the computer's installed fonts.
+## Bundled, so the numbers line up on any computer and in a browser (which
+## can't use the computer's installed fonts).
 ## It also has every symbol the game shows (✓ ✗ ★ ∝ …), so main.gd makes it
 ## the fallback for all other text too.
 const MONO_FONT := preload("res://fonts/AdwaitaMono-Regular.ttf")

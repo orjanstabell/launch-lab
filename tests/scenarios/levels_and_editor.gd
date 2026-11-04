@@ -80,6 +80,14 @@ func run():
 	levels_panel._name.text = "zz test level renamed"
 	levels_panel._save()
 	ok("renaming removes the old file", store.exists("zz test level renamed") and not store.exists("zz test level"))
+	# A new level can't take an existing level's file (same name up to case/punctuation)
+	levels_panel._loaded_name = ""   # as if this were a new level that was never saved
+	levels_panel._name.text = "ZZ Test Level Renamed"
+	levels_panel._task.text = "Other task"
+	levels_panel._save()
+	ok("saving a new level under a taken name is refused (%s)" % levels_panel._status.text,
+		"already taken" in levels_panel._status.text and store.read(store.path_for("zz test level renamed"))["description"] == "Test task")
+	ok("a write that can't happen reports false", not store.write("user://no_such_folder/x.json", {}))
 	levels_panel._copy()
 	ok("copy made", store.exists("zz test level renamed (copy)"))
 	store.delete("zz test level renamed (copy)")
@@ -88,6 +96,7 @@ func run():
 	var path = "user://test_exported_level.json"
 	store.write(path, levels_panel._captured("zz exported"))
 	var imported = store.read(path)
+	DirAccess.remove_absolute(path)
 	ok("export/import round trip", imported["name"] == "zz exported" and imported["pigs"].size() == 1)
 	# A broken or hand-edited file: the bad parts are skipped, the rest loads
 	var broken_path = "user://test_broken_level.json"

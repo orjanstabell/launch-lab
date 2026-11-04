@@ -139,7 +139,9 @@ func _import_level(level: Dictionary):
 	if level.is_empty():
 		_status.text = "That file isn't a level."
 		return
-	LevelStore.save(level)
+	if not LevelStore.save(level):
+		_status.text = "Couldn't save \"%s\"." % level["name"]
+		return
 	refresh(level["name"])
 	_status.text = "Imported \"%s\"." % level["name"]
 

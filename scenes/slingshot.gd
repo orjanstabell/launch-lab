@@ -45,7 +45,7 @@ func _draw():
 	bird_m.y = maxf(bird_m.y, bird_type["radius"])
 	var bird_at := Units.to_px(bird_m)
 	draw_line(left_tip, bird_at, BAND_COLOR, 3.0)
-	Bird.draw_bird(self, bird_at, radius, PhysicsParams.bird_type)
+	BirdArt.draw_bird(self, bird_at, radius, PhysicsParams.bird_type)
 	draw_line(right_tip, bird_at, BAND_COLOR, 3.0)
 	if PhysicsParams.launch_mode == "spring" and pulled.length() > 0.02:
 		draw_dashed_line(bird_at, launch_point, Color(1, 1, 1, 0.7), 1.5, 5.0)
