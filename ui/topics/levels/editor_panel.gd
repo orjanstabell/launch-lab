@@ -120,9 +120,16 @@ func _save():
 	if level_name == "":
 		_status.text = "Give the level a name first."
 		return
-	if _loaded_name != "" and _loaded_name != level_name:
-		LevelStore.delete(_loaded_name)   # saving under a new name renames it
-	LevelStore.save(_captured(level_name))
+	var renamed := _loaded_name != "" and LevelStore.path_for(_loaded_name) != LevelStore.path_for(level_name)
+	var is_other_level := _loaded_name == "" or renamed
+	if is_other_level and LevelStore.exists(level_name):
+		_status.text = "\"%s\" is already taken by another level: pick another name or use Copy." % level_name
+		return
+	if not LevelStore.save(_captured(level_name)):
+		_status.text = "Couldn't save \"%s\"." % level_name
+		return
+	if renamed:
+		LevelStore.delete(_loaded_name)   # only now that the new file is safely written
 	_loaded_name = level_name
 	_status.text = "Saved \"%s\" (find it in Levels)." % level_name
 
@@ -131,7 +138,9 @@ func _copy():
 	var level_name := _name.text.strip_edges() + " (copy)"
 	while LevelStore.exists(level_name):
 		level_name += "+"
-	LevelStore.save(_captured(level_name))
+	if not LevelStore.save(_captured(level_name)):
+		_status.text = "Couldn't save \"%s\"." % level_name
+		return
 	_loaded_name = level_name
 	_name.text = level_name
 	_status.text = "Saved a copy: \"%s\"." % level_name
@@ -179,8 +188,10 @@ func _export():
 
 func _on_export_chosen(path: String, dialog: FileDialog):
 	dialog.queue_free()
-	LevelStore.write(path, _captured(_name.text.strip_edges()))
-	_status.text = "Exported to %s" % path
+	if LevelStore.write(path, _captured(_name.text.strip_edges())):
+		_status.text = "Exported to %s" % path
+	else:
+		_status.text = "Couldn't write %s (is the folder read-only?)" % path
 
 
 func _add_row() -> HBoxContainer:
