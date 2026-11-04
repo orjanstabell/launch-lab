@@ -327,6 +327,22 @@ your number becomes something you can see next to what really happens:
 - Tooltips on every button, checkbox and launch row (a test checks for missing ones). Overlay checkboxes wrap.
 - Test: tests/scenarios/pause_and_overlays.gd.
 
+## Added 2026-11-04: review before showing it in a lecture
+
+- **README.md** for a teacher: running it, controls, lecture demo ideas, what the model simplifies, a code tour.
+- Fixed: the Energy graph only recorded while its tab was open (empty after switching mid-flight); switching to
+  Forces while paused showed resting pigs with gravity but no normal force; the Energy panel's LAST HIT section
+  never appeared (wrong key); Solve for g at θ = 90° claimed g ≈ 0 worked; hidden fuel/mass/KE still showed in
+  the Momentum text; a rounding error showed as "-0.00".
+- The dock never leaves the screen any more (it did on the Practice tab, and on Forces with the spring or rocket):
+  practice picker trimmed with "…", long dock lines split, and dock labels end in "…" instead of growing. Test:
+  `tests/scenarios/dock_fits.gd` (every tab, bird, practice problem and level).
+- Level files from Import… are checked: broken pieces and unknown settings are skipped instead of crashing.
+- F11 fullscreen (Esc leaves it). The monospace font falls back to Consolas / Menlo on Windows / macOS.
+- Zero GDScript warnings in the editor (also with every warning treated as an error).
+- Open question: the "Yellow bird: when to tap" problem and the "Yellow bird: straight shot" level fly the purple
+  Custom bird with g → 0, while the Yellow bird itself is the speed boost. Rename them, or give them the yellow bird?
+
 ## Possible next steps (not started)
 
 - Class mode: a level that opens straight into a practice problem; limit attempts or hide Show solution; a score.
