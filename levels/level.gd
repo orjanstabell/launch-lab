@@ -61,29 +61,37 @@ static func capture(objects: Dictionary, topic: int) -> Dictionary:
 
 
 ## Put a level's settings into PhysicsParams and Reveal. Anything the level
-## doesn't mention keeps its current value.
+## doesn't mention keeps its current value. Anything unknown or of the wrong
+## kind (a hand-edited file, or one saved by a newer version) is skipped.
 static func apply_settings(level: Dictionary):
 	# The launch mode first: in spring mode, setting m recomputes v₀ from the spring.
-	var mode: String = level.get("launch_mode", "speed")
-	for key in level.get("spring", {}):
+	var mode: String = level.get("launch_mode", "speed") if level.get("launch_mode") in ["speed", "spring"] else "speed"
+	for key in _known_numbers(level.get("spring"), PhysicsParams.SPRING_DEFINITIONS):
 		PhysicsParams.set_spring_value(key, level["spring"][key])
 	PhysicsParams.set_launch_mode(mode)
-	for key in level.get("launch", {}):
-		if key in PhysicsParams.DEFINITIONS:
-			PhysicsParams.set_value(key, level["launch"][key])
+	for key in _known_numbers(level.get("launch"), PhysicsParams.DEFINITIONS):
+		PhysicsParams.set_value(key, level["launch"][key])
 	PhysicsParams.set_launch_mode(mode)   # (spring mode: v₀ from k, Δx and the new m)
-	if level.has("bird_type"):
-		PhysicsParams.set_bird_type(level["bird_type"])
-	for key in level.get("ability_on", {}):
-		PhysicsParams.set_ability_on(key, level["ability_on"][key])
-	for key in level.get("ability", {}):
+	var bird_type: Variant = level.get("bird_type")
+	if bird_type is String and BirdTypes.TYPES.has(bird_type) and not BirdTypes.TYPES[bird_type].get("hidden", false):
+		PhysicsParams.set_bird_type(bird_type)
+	var ability_on: Variant = level.get("ability_on")
+	if ability_on is Dictionary:
+		for key in ability_on:
+			if key in PhysicsParams.ability_on and ability_on[key] is bool:
+				PhysicsParams.set_ability_on(key, ability_on[key])
+	for key in _known_numbers(level.get("ability"), PhysicsParams.ABILITY_DEFINITIONS):
 		PhysicsParams.set_ability_value(key, level["ability"][key])
-	for key in level.get("split", {}):
-		PhysicsParams.set_split(key, level["split"][key])
-	if level.has("elasticity"):
+	var split: Variant = level.get("split")
+	if split is Dictionary:
+		for key in split:
+			if split[key] is float or split[key] is int or split[key] is bool:
+				PhysicsParams.set_split(key, split[key])   # (it keeps them in range)
+	if level.get("elasticity") is float or level.get("elasticity") is int:
 		PhysicsParams.set_elasticity(level["elasticity"])
-	if level.has("target"):
-		PhysicsParams.set_target(Vector2(level["target"][0], level["target"][1]))
+	var target: Variant = level.get("target")
+	if target is Array and target.size() == 2 and target.all(func(n): return n is float or n is int):
+		PhysicsParams.set_target(Vector2(target[0], target[1]))
 	elif not level.get("pigs", []).is_empty():
 		PhysicsParams.set_target(Vector2(level["pigs"][0]["x"], level["pigs"][0]["y"]))
 	Reveal.show_all()
@@ -92,3 +100,10 @@ static func apply_settings(level: Dictionary):
 			Reveal.set_hidden(key, true)
 	if level.get("randomize_hidden", false):
 		Reveal.randomize_hidden()
+
+
+## The keys of `values` that `definitions` knows and that hold a number.
+static func _known_numbers(values: Variant, definitions: Dictionary) -> Array:
+	if not (values is Dictionary):
+		return []
+	return values.keys().filter(func(key): return key in definitions and (values[key] is float or values[key] is int))

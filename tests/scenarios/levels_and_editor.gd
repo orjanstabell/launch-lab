@@ -89,6 +89,22 @@ func run():
 	store.write(path, levels_panel._captured("zz exported"))
 	var imported = store.read(path)
 	ok("export/import round trip", imported["name"] == "zz exported" and imported["pigs"].size() == 1)
+	# A broken or hand-edited file: the bad parts are skipped, the rest loads
+	var broken_path = "user://test_broken_level.json"
+	var broken := FileAccess.open(broken_path, FileAccess.WRITE)
+	broken.store_string(JSON.stringify({"name": "zz broken", "topic": "two", "hidden": "g",
+		"blocks": [{"x": 20.0, "y": 0.5, "w": 1.0, "h": 1.0}, {"x": 22.0, "y": 0.5}, "not a block"],
+		"pigs": [{"x": 20.0, "y": 1.4}, {"x": 23.0, "y": 0.4, "big": "yes"}],
+		"bird_type": "bomb", "launch_mode": "rubber band", "launch": {"v0": "fast", "theta": 30.0},
+		"spring": {"q": 3.0}, "ability_on": {"wings": true, "g": "yes"}, "split": {"pieces": 1}, "target": "over there"}))
+	broken.close()
+	var bird_before: String = P.bird_type
+	var sane = store.read(broken_path)
+	DirAccess.remove_absolute(broken_path)
+	main.load_level(sane)
+	await frames(5)
+	ok("broken file: only the good block and pig load (%d, %d), bad settings skipped" % [main.level.get_child_count(), sane["pigs"].size()],
+		sane["blocks"].size() == 1 and sane["pigs"].size() == 1 and P.bird_type == bird_before and P.launch_mode == "speed" and is_equal_approx(P.values["theta"], 30.0) and P.split["pieces"] >= 2 and main.current_topic == 0)
 	# load the saved level back
 	P.set_value("g", 9.81)
 	main.load_level(store.read(store.path_for("zz test level renamed")))

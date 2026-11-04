@@ -51,17 +51,31 @@ static func write(path: String, level: Dictionary):
 		file.store_string(JSON.stringify(level, "\t"))
 
 
-## The level in a JSON file, or {} if it can't be read.
+## The level in a JSON file, or {} if it can't be read. Files can come from
+## anywhere (Import…), so pieces that are malformed are left out instead of
+## breaking the level.
 static func read(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return {}
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if not (parsed is Dictionary) or not parsed.has("name"):
+	if not (parsed is Dictionary) or not (parsed.get("name") is String):
 		return {}
 	var level: Dictionary = parsed
-	# Fill in anything an older or hand-made file leaves out.
+	# Fill in anything an older or hand-made file leaves out (or has the wrong kind of value for).
 	var blank := Level.blank(level["name"])
 	for key in blank:
-		if not level.has(key):
+		if not _same_kind(level.get(key), blank[key]):
 			level[key] = blank[key]
+	level["blocks"] = level["blocks"].filter(func(block): return _numbers(block, ["x", "y", "w", "h"]) and block["w"] > 0.0 and block["h"] > 0.0)
+	level["pigs"] = level["pigs"].filter(func(pig): return _numbers(pig, ["x", "y"]) and pig.get("big", false) is bool and (not pig.has("mass") or _numbers(pig, ["mass"])))
 	return level
+
+
+## True if `entry` is a Dictionary whose `keys` all hold numbers.
+static func _numbers(entry: Variant, keys: Array) -> bool:
+	return entry is Dictionary and keys.all(func(key): return entry.get(key) is float or entry.get(key) is int)
+
+
+static func _same_kind(value: Variant, example: Variant) -> bool:
+	var numbers := [TYPE_INT, TYPE_FLOAT]   # JSON reads every number as a float
+	return typeof(value) == typeof(example) or (typeof(value) in numbers and typeof(example) in numbers)
