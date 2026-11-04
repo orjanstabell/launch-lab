@@ -58,6 +58,9 @@ func _init():
 	check_hit("two-point launch hits the pig on the ground", make(both.x, both.y, 9.81, 2.0), pig_on_ground)
 	check_true("out of reach: no angle", Kinematics.solve_angles(5.0, 9.81, 0.0, target).is_empty())
 	check_true("aiming below the target: no speed works", is_nan(Kinematics.solve_speed(0.0, 9.81, 0.0, Vector2(10, 3))))
+	# Straight up never moves sideways: no speed or gravity reaches a target in front.
+	check_true("θ = 90°: no speed works", is_nan(Kinematics.solve_speed(90.0, 9.81, 0.0, target)))
+	check_true("θ = 90°: no gravity works (was g ≈ 0)", is_nan(Kinematics.solve_gravity(15.0, 90.0, 0.0, target)))
 
 	# Rocket: fired straight up with no gravity, it gains exactly v_e·ln(m₀/m₁).
 	var rocket := make(0.0001, 90.0, 0.0, 10.0)

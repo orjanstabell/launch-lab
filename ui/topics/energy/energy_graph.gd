@@ -3,6 +3,8 @@ extends Control
 ## KE, PE and E against time for the current bird, drawn in the dock.
 ## In flight the white E line should stay flat: energy is conserved.
 ## Steps in it show where something added or removed energy (ability, split, crash).
+## It records even while another tab is shown, so switching to Energy mid-flight
+## still shows the whole flight.
 
 const KE_COLOR := Color(1.0, 0.45, 0.35)
 const PE_COLOR := Color(0.4, 0.7, 1.0)
@@ -19,8 +21,6 @@ func _init():
 
 
 func _process(delta: float):
-	if not is_visible_in_tree():
-		return
 	var bird: Bird = PhysicsParams.bird
 	if bird != _bird:   # a new launch: start a new graph
 		_bird = bird
@@ -32,7 +32,8 @@ func _process(delta: float):
 		if crashed_for < AFTER_CRASH_TIME:
 			var energy := bird.total_energy()
 			_samples.append(Vector3(_time, energy.x, energy.y))
-	queue_redraw()
+	if is_visible_in_tree():
+		queue_redraw()
 
 
 func _draw():
@@ -43,7 +44,8 @@ func _draw():
 		draw_string(font, area.position + Vector2(10, 30), "energy hidden", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.5))
 		return
 	if _samples.is_empty():
-		draw_string(font, area.position + Vector2(10, 30), "Launch a bird to see its energy over time.", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.5))
+		var hint := "Launch a bird to see its energy over time." if not is_instance_valid(PhysicsParams.bird) else "Unpause to record the energy."
+		draw_string(font, area.position + Vector2(10, 30), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.5))
 		return
 
 	var max_time := maxf(_samples[-1].x, 2.0)

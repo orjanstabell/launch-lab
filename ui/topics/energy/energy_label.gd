@@ -38,7 +38,7 @@ func _build_lines() -> Array:
 		"  a crash: energy goes into heat, sound, bending and moving the blocks",
 	])
 	var hit := PhysicsParams.collision
-	if not hit.is_empty() and hit.has("after_bird") and hit["bird"] == bird:
+	if not hit.is_empty() and hit.has("bird_after") and hit["bird"] == bird:
 		var before: float = hit["ke_before"]
 		var after: float = hit["ke_after"]
 		lines.append_array([

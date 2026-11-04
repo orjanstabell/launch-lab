@@ -31,11 +31,12 @@ func _init(arrow_mode := "forces"):
 
 
 func _process(delta: float):
-	if not visible:
-		return
-	if not get_tree().paused:
+	# Follow the forces even while hidden, so switching to this tab (e.g. while
+	# paused) shows a resting pig's normal force at once, not just its gravity.
+	if mode == "forces" and not get_tree().paused:
 		_follow_forces(delta * Engine.time_scale)
-	queue_redraw()
+	if visible:
+		queue_redraw()
 
 
 ## Smooth each pig's contact force, and remember its biggest recent push.
@@ -73,7 +74,7 @@ func _draw():
 		if not hit.is_empty() and hit["age"] < HIT_SHOWN_FOR:
 			var faded: float = fade * (1.0 - hit["age"] / HIT_SHOWN_FOR)
 			_arrow(right, hit["force"] * PX_PER_NEWTON, Color(CONTACT_COLOR, 0.5 * faded), "hit: %s N" % Reveal.num(hit["force"].length(), ["F"], 0), k)
-		var contact: Vector2 = _contact.get(pig, Vector2.ZERO)
+		var contact: Vector2 = _contact.get(pig, pig.contact_force)
 		if contact.length() > 0.3:
 			_arrow(right, contact * PX_PER_NEWTON, Color(CONTACT_COLOR, fade), "contact %s N" % Reveal.num(contact.length(), ["F"], 1), k)
 

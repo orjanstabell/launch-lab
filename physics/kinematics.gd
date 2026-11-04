@@ -132,7 +132,8 @@ static func solve_speed(theta_deg: float, g: float, y0: float, target: Vector2) 
 	var theta := deg_to_rad(theta_deg)
 	var drop := y0 - target.y
 	var lift := drop + target.x * tan(theta)   # must be > 0: aimed above the target
-	if target.x <= 0.0 or cos(theta) <= 0.0 or lift <= 0.0 or g <= 0.0:
+	# cos θ ≈ 0: straight up or down, it never moves sideways (cos 90° is 6e-17, not 0).
+	if target.x <= 0.0 or cos(theta) < 1e-6 or lift <= 0.0 or g <= 0.0:
 		return NAN
 	return sqrt(g * target.x * target.x / (2.0 * pow(cos(theta), 2) * lift))
 
@@ -141,7 +142,7 @@ static func solve_speed(theta_deg: float, g: float, y0: float, target: Vector2) 
 static func solve_gravity(v0: float, theta_deg: float, y0: float, target: Vector2) -> float:
 	var theta := deg_to_rad(theta_deg)
 	var lift := (y0 - target.y) + target.x * tan(theta)
-	if target.x <= 0.0 or lift <= 0.0:
+	if target.x <= 0.0 or cos(theta) < 1e-6 or lift <= 0.0 or v0 <= 0.0:
 		return NAN
 	return 2.0 * v0 * v0 * pow(cos(theta), 2) * lift / (target.x * target.x)
 
