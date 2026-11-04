@@ -48,16 +48,25 @@ static func path_for(level_name: String) -> String:
 static func write(path: String, level: Dictionary):
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file:
-		file.store_string(JSON.stringify(level, "\t"))
+		file.store_string(to_json(level))
 
 
-## The level in a JSON file, or {} if it can't be read. Files can come from
-## anywhere (Import…), so pieces that are malformed are left out instead of
-## breaking the level.
+static func to_json(level: Dictionary) -> String:
+	return JSON.stringify(level, "\t")
+
+
+## The level in a JSON file, or {} if it can't be read.
 static func read(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		return {}
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return parse(FileAccess.get_file_as_string(path))
+
+
+## The level in JSON text, or {} if it isn't one. The text can come from
+## anywhere (Import…), so pieces that are malformed are left out instead of
+## breaking the level.
+static func parse(json: String) -> Dictionary:
+	var parsed: Variant = JSON.parse_string(json)
 	if not (parsed is Dictionary) or not (parsed.get("name") is String):
 		return {}
 	var level: Dictionary = parsed

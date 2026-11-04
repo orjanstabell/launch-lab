@@ -12,6 +12,7 @@ var _list: ItemList
 var _about: Label
 var _status: Label
 var _levels: Array[Dictionary] = []   # what each list row loads: {"level", "saved"}
+var _on_uploaded: JavaScriptObject   # kept here so the browser's callback stays alive
 
 
 func _ready():
@@ -102,6 +103,9 @@ func _delete_selected():
 
 
 func _import():
+	if OS.has_feature("web"):
+		_import_in_browser()
+		return
 	var dialog := FileDialog.new()
 	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	dialog.access = FileDialog.ACCESS_FILESYSTEM
@@ -112,9 +116,26 @@ func _import():
 	dialog.popup_centered(Vector2i(900, 600))
 
 
+## A browser page can't browse the computer's folders, so it opens the browser's
+## own "open file" window instead and gets the file's text back.
+func _import_in_browser():
+	_on_uploaded = JavaScriptBridge.create_callback(func(args: Array): _import_level(LevelStore.parse(str(args[0]))))
+	JavaScriptBridge.get_interface("window").godotLevelUploaded = _on_uploaded
+	JavaScriptBridge.eval("""
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.json,application/json';
+		input.onchange = () => input.files[0].text().then(text => window.godotLevelUploaded(text));
+		input.click();
+	""", true)
+
+
 func _on_import_chosen(path: String, dialog: FileDialog):
 	dialog.queue_free()
-	var level := LevelStore.read(path)
+	_import_level(LevelStore.read(path))
+
+
+func _import_level(level: Dictionary):
 	if level.is_empty():
 		_status.text = "That file isn't a level."
 		return

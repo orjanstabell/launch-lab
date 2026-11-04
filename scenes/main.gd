@@ -544,6 +544,8 @@ func _make_theme() -> Theme:
 	panel_style.set_corner_radius_all(8)
 	panel_style.set_content_margin_all(12)
 
+	# On the web there are no system fonts to borrow ✓, ✗, ★… from.
+	ThemeDB.fallback_font.fallbacks = [LiveLabel.MONO_FONT]
 	var theme := Theme.new()
 	theme.default_font_size = 18
 	theme.set_stylebox("panel", "PanelContainer", panel_style)

@@ -25,6 +25,32 @@ built-in levels.
 3. Press **F11** for fullscreen on a projector (**Esc** to leave it). The game
    is laid out for 1920×1080 and scales to any window.
 
+## The web version
+
+This copy of the project also runs in a browser. The ready-built game is in
+`docs/` (`index.html` plus the engine, about 40 MB; browsers cache it after the
+first visit).
+
+- **Try it locally:** `python3 -m http.server -d docs 8000`, then open
+  <http://localhost:8000>. Opening `index.html` directly from disk won't work.
+- **Publish it on GitHub Pages:** push this repo to GitHub, then go to
+  Settings → Pages and choose this branch with the `/docs` folder.
+- **Rebuild it after a change:** export with the **standard** (non-.NET) Godot
+  4.7, because .NET builds can't export to the web. In the editor, use
+  Project → Export → Web → Export Project, or run this in a terminal:
+  `godot --headless --export-release Web docs/index.html`. Thread support is
+  off, so plain hosts like GitHub Pages work without special headers.
+
+Differences from the desktop version:
+
+- **Import…** and **Export…** use the browser's own upload and download
+  windows.
+- Saved levels stay in that browser, on that computer.
+- The monospace font is bundled (`fonts/`, OFL licence), because a web page
+  can't use the computer's installed fonts.
+- Browsers only allow fullscreen after a click, so click the game once before
+  pressing F11, or use the browser's own fullscreen.
+
 ## Controls
 
 | Key / mouse | What it does |

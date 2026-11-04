@@ -166,6 +166,13 @@ func _on_big_pig_mass_changed(value: float):
 
 
 func _export():
+	if OS.has_feature("web"):
+		# A browser page can't write to the computer's folders: hand it over as a download.
+		var file_name := LevelStore.path_for(_name.text).get_file()
+		var json := LevelStore.to_json(_captured(_name.text.strip_edges()))
+		JavaScriptBridge.download_buffer(json.to_utf8_buffer(), file_name, "application/json")
+		_status.text = "Downloaded %s" % file_name
+		return
 	var dialog := FileDialog.new()
 	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
 	dialog.access = FileDialog.ACCESS_FILESYSTEM
