@@ -143,7 +143,7 @@ func _compact_lines(bird: Bird) -> Array:
 	var info := bird.split_info
 	var p_before: Vector2 = info["p_before"]
 	var p_after: Vector2 = info["p_after"]
-	var lost := 1.0 - p_after.length() / p_before.length()
+	var lost := 1.0 - p_after.length() / p_before.length() if p_before.length() > 1e-6 else 0.0   # (at rest: nothing to lose)
 	var status := "momentum conserved ✓" if absf(lost) < 0.001 else "%s%% momentum lost ✗" % String.num(lost * 100.0, 1)
 	var what := "Egg thrown" if info.get("kind") == "egg" else "Split into %d" % info["pieces"]
 	var lines := ["%s: %s,  KE %s → %s J" % [what, status, _n(info["ke_before"], ["m", "v", "E"]), _n(info["ke_after"], ["m", "v", "E"])]]
@@ -164,7 +164,7 @@ func _split_lines(bird: Bird) -> Array:
 	var info := bird.split_info
 	var p_before: Vector2 = info["p_before"]
 	var p_after: Vector2 = info["p_after"]
-	var lost := 1.0 - p_after.length() / p_before.length()
+	var lost := 1.0 - p_after.length() / p_before.length() if p_before.length() > 1e-6 else 0.0   # (at rest: nothing to lose)
 	var p_from := ["p", "m", "v"]
 	var header: String
 	if info.get("kind") == "egg":

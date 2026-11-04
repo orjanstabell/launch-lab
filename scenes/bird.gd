@@ -20,6 +20,9 @@ enum State { FLYING, PHYSICS }
 const MAX_FLIGHT_TIME := 30.0   # give up on birds that never come down (g = 0)
 const SENSOR_RADIUS_M := 2.5   # the proximity sensor: notices pigs this close (for the action cam)
 const PHYSICS_TRAIL_TIME := 4.0   # keep drawing the trail this long after the hit
+## A bird that leaves this box (meters) is removed: a bit past either end of the
+## ground (−20 m to 120 m), or fallen where there's no ground to land on.
+const WORLD_M := Rect2(-30.0, -20.0, 160.0, 1000.0)
 
 var state := State.FLYING
 var type := "red"   # key into BirdTypes.TYPES
@@ -132,8 +135,8 @@ func _physics_process(delta: float):
 			if _previous_velocity != Vector2.INF:
 				contact_force = mass * ((velocity - _previous_velocity) / delta - Vector2(0, -segment.g))
 			_previous_velocity = velocity
-	if global_position.x > 4000 or global_position.x < -1000 or global_position.y > 2000:
-		queue_free()   # far off screen
+	if not WORLD_M.has_point(Units.to_m(position)):
+		queue_free()
 
 
 ## Velocity in m/s (y up), whoever is in control.

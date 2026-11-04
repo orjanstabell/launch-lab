@@ -11,8 +11,8 @@ extends Node2D
 
 const DOT_INTERVAL := 0.1   # seconds between dots
 const MAX_TIME := 30.0
-const MAX_DISTANCE_M := 60.0
-const MAX_HEIGHT_M := 40.0
+const MAX_DISTANCE_M := 120.0   # the end of the ground
+const MAX_HEIGHT_M := 50.0   # above this the camera can't show it (Fit zooms out to 0.3×)
 const CURRENT_COLOR := Color(1, 1, 1, 0.9)
 const PENDING_COLOR := Color(1.0, 0.85, 0.2, 0.9)
 
@@ -54,9 +54,10 @@ func _draw_path(p: LaunchParams, color: Color, radius: float):
 	var dot_count := int(end_time / DOT_INTERVAL)
 	for i in dot_count + 1:
 		var pos := Kinematics.position(p, i * DOT_INTERVAL)
-		if pos.x > MAX_DISTANCE_M or pos.y > MAX_HEIGHT_M:
+		if pos.x > MAX_DISTANCE_M:
 			return
-		draw_circle(Units.to_px(pos), radius, color)
+		if pos.y <= MAX_HEIGHT_M:   # (skips the top of a very high arc, but still draws the way down)
+			draw_circle(Units.to_px(pos), radius, color)
 	# Finish exactly at the landing point (y = 0), which usually falls between two dots.
 	if end_time < MAX_TIME:
 		draw_circle(Units.to_px(Kinematics.position(p, end_time)), radius, color)
