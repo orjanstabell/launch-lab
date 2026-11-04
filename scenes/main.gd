@@ -129,6 +129,11 @@ func _unhandled_input(event: InputEvent):
 			reset_level()
 		KEY_D:
 			set_show_details(not show_details)
+		KEY_F11:   # fullscreen, e.g. on a projector (and back)
+			set_fullscreen(not is_fullscreen())
+		KEY_ESCAPE:
+			if is_fullscreen():
+				set_fullscreen(false)
 		var key when key >= KEY_1 and key < KEY_1 + topics.size():
 			show_topic(key - KEY_1)
 
@@ -191,6 +196,14 @@ func set_show_details(on: bool):
 	show_details = on
 	details_button.set_pressed_no_signal(on)
 	show_topic(current_topic)
+
+
+func is_fullscreen() -> bool:
+	return DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+
+
+func set_fullscreen(on: bool):
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if on else DisplayServer.WINDOW_MODE_WINDOWED)
 
 
 func reset_level():
