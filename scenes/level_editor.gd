@@ -134,8 +134,8 @@ func _draw():
 		_outline(_drop(size, _mouse, {}), size, piece.ends_with("pig"), GHOST_COLOR, k)
 
 
-func _outline(center: Vector2, size: Vector2, round: bool, color: Color, k: float):
-	if round:
+func _outline(center: Vector2, size: Vector2, is_round: bool, color: Color, k: float):
+	if is_round:
 		draw_arc(Units.to_px(center), size.x / 2.0 * Units.PIXELS_PER_METER, 0.0, TAU, 24, color, 3.0 * k, true)
 	else:
 		var top_left := Units.to_px(center + Vector2(-size.x, size.y) / 2.0)

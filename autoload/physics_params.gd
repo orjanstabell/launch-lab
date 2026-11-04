@@ -18,6 +18,7 @@ signal launch_requested   # any UI can ask main to launch a bird
 signal reset_requested   # ... or to reset the level
 signal announced(text: String)   # a big message over the sky (e.g. quiz results)
 signal details_requested   # ask main to show the Formulas/details panel
+@warning_ignore("unused_signal")   # emitted by Bird
 signal bird_near_pig(bird: Bird, pig: Pig)   # a bird's proximity sensor found a pig (for the action cam)
 
 const DEFINITIONS := {
@@ -30,9 +31,6 @@ const DEFINITIONS := {
 	"m": {"label": "Mass", "symbol": "m", "unit": "kg", "default": 1.0, "min": 0.1, "max": 10.0, "step": 0.1},
 }
 
-## What the ability can change, with its own defaults and limits. Mid-air the
-## angle can point downwards (a dive), and the speed can be 0 (stop and drop).
-## y₀ is where the slingshot holds the bird, so it only exists at launch.
 ## The slingshot as a spring (launch_mode "spring").
 const SPRING_DEFINITIONS := {
 	"k": {"label": "Spring k", "symbol": "k", "unit": "N/m", "default": 400.0, "min": 20.0, "max": 3000.0, "step": 1.0},
@@ -54,6 +52,9 @@ const EGG_DEFINITIONS := {
 	"speed": {"label": "Throw speed (relative)", "symbol": "u", "unit": "m/s", "default": 15.0, "min": 1.0, "max": 60.0, "step": 0.5},
 }
 
+## What the ability can change, with its own defaults and limits. Mid-air the
+## angle can point downwards (a dive), and the speed can be 0 (stop and drop).
+## y₀ is where the slingshot holds the bird, so it only exists at launch.
 const ABILITY_DEFINITIONS := {
 	"g": {"default": 3.0, "min": 0.0, "max": 30.0},
 	"v0": {"default": 30.0, "min": 0.0, "max": 40.0},
@@ -204,7 +205,20 @@ func set_elasticity(e: float):
 	values_changed.emit()
 
 
+## Kept in range like the other settings, so a hand-edited level file can't
+## break the split (e.g. 1 piece would divide by zero when fanning them out).
 func set_split(key: String, value: Variant):
+	if not split.has(key):
+		return
+	match key:
+		"pieces":
+			value = clampi(int(value), 2, 5)
+		"spread":
+			value = clampf(float(value), 0.0, 90.0)
+		"conserve":
+			value = bool(value)
+		"speed":
+			value = float(value)
 	split[key] = value
 	values_changed.emit()
 

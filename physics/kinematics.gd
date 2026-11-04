@@ -158,8 +158,8 @@ static func solve_angles(v0: float, g: float, y0: float, target: Vector2) -> Arr
 	var discriminant := target.x * target.x - 4.0 * a * (a - drop)
 	if discriminant < 0.0:
 		return result   # out of reach at this speed
-	for sign in [-1.0, 1.0]:
-		result.append(rad_to_deg(atan((target.x + sign * sqrt(discriminant)) / (2.0 * a))))
+	for root_sign in [-1.0, 1.0]:   # −: the low arc, +: the high arc
+		result.append(rad_to_deg(atan((target.x + root_sign * sqrt(discriminant)) / (2.0 * a))))
 	return result
 
 

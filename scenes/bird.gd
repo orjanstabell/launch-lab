@@ -629,7 +629,7 @@ static func _draw_round_bird(canvas: CanvasItem, center: Vector2, r: float, colo
 			_ellipse(canvas, at.call(spot[0].x, spot[0].y), spot[1] * r, color.darkened(0.3))
 
 	if style.get("rocket", false):
-		_draw_rocket(canvas, at, shape, r, ink, line, flame)
+		_draw_rocket(canvas, at, shape, ink, line, flame)
 
 	# Face, at the front: cheeks, eyes looking forward, brow, beak.
 	var eye_size: float = style.get("eyes", 1.0)
@@ -654,7 +654,7 @@ static func _draw_round_bird(canvas: CanvasItem, center: Vector2, r: float, colo
 
 ## A little rocket strapped along the bird's back, pointing forward (where it
 ## pushes), with a flame from the nozzle while it fires.
-static func _draw_rocket(canvas: CanvasItem, at: Callable, shape: Callable, r: float, ink: Color, line: float, flame: bool):
+static func _draw_rocket(canvas: CanvasItem, at: Callable, shape: Callable, ink: Color, line: float, flame: bool):
 	var tube := [Vector2(-1.25, -0.98), Vector2(0.15, -0.98), Vector2(0.15, -0.62), Vector2(-1.25, -0.62)]
 	if flame:
 		var flicker := 1.0 + 0.3 * sin(Time.get_ticks_msec() * 0.05)

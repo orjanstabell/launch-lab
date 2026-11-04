@@ -10,9 +10,9 @@ func _initialize():
 		var sample = script.new()
 		var gen_fail = 0
 		var judged = 0
-		for round in 60:
+		for attempt in 60:
 			var p = script.new()
-			p.rng.seed = round * 7919 + 13
+			p.rng.seed = attempt * 7919 + 13
 			var good = false
 			for t in 100:
 				if p.generate():

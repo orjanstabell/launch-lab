@@ -33,10 +33,10 @@ func _build_lines() -> Array:
 
 
 ## Break a long line at spaces so the panel doesn't get too wide.
-func _wrap(text: String) -> Array:
+func _wrap(paragraph: String) -> Array:
 	var lines := []
 	var line := ""
-	for word in text.split(" "):
+	for word in paragraph.split(" "):
 		if line.length() + word.length() + 1 > WRAP_AT and line != "":
 			lines.append(line)
 			line = "    " + word

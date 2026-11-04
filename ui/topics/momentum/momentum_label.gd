@@ -43,6 +43,8 @@ func _build_lines() -> Array:
 
 func _rocket_lines(bird: Bird) -> Array:
 	var settings := PhysicsParams.rocket
+	var m0: float = PhysicsParams.values["m"]
+	var fuel := PhysicsParams.usable_fuel(m0)
 	var lines := [
 		"",
 		"ROCKET EQUATION",
@@ -50,7 +52,7 @@ func _rocket_lines(bird: Bird) -> Array:
 		"Momentum of bird + exhaust is conserved: in a short time the bird",
 		"(mass m) speeds up by dv while throwing out dm at speed v_e:",
 		"  m·dv = v_e·dm   →   Δv = v_e·ln(m₀ / m₁)",
-		"Exhaust %s m/s, fuel %s kg: from %s kg down to %s kg" % [String.num(settings["exhaust"], 1), String.num(PhysicsParams.usable_fuel(PhysicsParams.values["m"]), 2), String.num(PhysicsParams.values["m"], 2), String.num(PhysicsParams.values["m"] - PhysicsParams.usable_fuel(PhysicsParams.values["m"]), 2)],
+		"Exhaust %s m/s, fuel %s kg: from %s kg down to %s kg" % [String.num(settings["exhaust"], 1), _n(fuel, ["fuel"]), _n(m0, ["m"]), _n(m0 - fuel, ["m", "fuel"])],
 	]
 	if bird.segment.is_rocket():
 		var gained := Kinematics.rocket_speed(bird.segment, bird.t)
@@ -127,7 +129,7 @@ func _compact_lines(bird: Bird) -> Array:
 		return ["p = m·v   (kg·m/s)", "Next launch:  p = %s" % _n(p.m * p.v0, ["p", "m", "v0"])]
 	if bird.pieces.is_empty():
 		var p: Vector2 = bird.mass_now() * bird.velocity_m()
-		var lines := [
+		var result := [
 			"p = m·v   (kg·m/s)",
 			"px = %s   py = %s   |p| = %s" % [Reveal.live(p.x, ["p", "m", "vx"]), Reveal.live(p.y, ["p", "m", "vy"]), Reveal.live(p.length(), p_from)],
 		]
@@ -135,15 +137,16 @@ func _compact_lines(bird: Bird) -> Array:
 		if not hit.is_empty():
 			var before: Vector2 = hit["bird_m"] * hit["bird_before"] + hit["other_m"] * hit["other_before"]
 			var after: Vector2 = hit["bird_m"] * hit["bird_after"] + hit["other_m"] * hit["other_after"]
-			lines.append("Hit the %s: Σp (%s, %s) → (%s, %s) %s" % [hit["other_name"], _n(before.x, p_from), _n(before.y, p_from), _n(after.x, p_from), _n(after.y, p_from), "conserved ✓" if _hit_conserved(hit) else "(outside push)"])
-		return lines
+			result.append("Hit the %s: Σp (%s, %s) → (%s, %s)" % [hit["other_name"], _n(before.x, p_from), _n(before.y, p_from), _n(after.x, p_from), _n(after.y, p_from)])
+			result.append("  conserved ✓" if _hit_conserved(hit) else "  changed: something else pushed too")
+		return result
 	var info := bird.split_info
 	var p_before: Vector2 = info["p_before"]
 	var p_after: Vector2 = info["p_after"]
 	var lost := 1.0 - p_after.length() / p_before.length()
 	var status := "momentum conserved ✓" if absf(lost) < 0.001 else "%s%% momentum lost ✗" % String.num(lost * 100.0, 1)
 	var what := "Egg thrown" if info.get("kind") == "egg" else "Split into %d" % info["pieces"]
-	var lines := ["%s: %s,  KE %s → %s J" % [what, status, _n(info["ke_before"], ["m", "v"]), _n(info["ke_after"], ["m", "v"])]]
+	var lines := ["%s: %s,  KE %s → %s J" % [what, status, _n(info["ke_before"], ["m", "v", "E"]), _n(info["ke_after"], ["m", "v", "E"])]]
 	var total_p := Vector2.ZERO
 	for piece in bird.pieces:
 		if not is_instance_valid(piece) or piece.state != Bird.State.FLYING:
@@ -177,7 +180,7 @@ func _split_lines(bird: Bird) -> Array:
 		"  p before  (%s, %s)" % [_n(p_before.x, p_from), _n(p_before.y, p_from)],
 		"  p after   (%s, %s)   %s" % [_n(p_after.x, p_from), _n(p_after.y, p_from),
 			"conserved ✓" if absf(lost) < 0.001 else "%s%% lost ✗ (like the real game)" % String.num(lost * 100.0, 1)],
-		"  KE before %s J → after %s J" % [_n(info["ke_before"], ["m", "v"]), _n(info["ke_after"], ["m", "v"])],
+		"  KE before %s J → after %s J" % [_n(info["ke_before"], ["m", "v", "E"]), _n(info["ke_after"], ["m", "v", "E"])],
 		"  (the throw adds energy, from Matilda's muscles)" if info.get("kind") == "egg" else "  (the split adds energy, like a small explosion)",
 		"",
 	]

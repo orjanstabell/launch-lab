@@ -97,8 +97,8 @@ func run():
 	# multi-pig message
 	main.load_level(presets[5])
 	await frames(30)
-	var pigs = main.get_tree().get_nodes_in_group("pigs")
-	pigs[0]._die()
+	var pig_nodes = main.get_tree().get_nodes_in_group("pigs")
+	pig_nodes[0]._die()
 	await frames(2)
 	ok("pig counter: '%s'" % main.message.text, "2 to go" in main.message.text)
 	print("DONE, fails=%d" % fails)

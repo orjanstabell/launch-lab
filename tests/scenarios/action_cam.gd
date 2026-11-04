@@ -46,9 +46,9 @@ func run():
 		if main.action.is_empty(): break
 	ok("a big contact force on the pig was measured (%.0f N)" % saw_contact, saw_contact > 100.0)
 	ok("afterwards: back to normal speed (%.2f) and overlay hidden" % Engine.time_scale, is_equal_approx(Engine.time_scale, 1.0) and not main.action_overlay.visible)
-	var pig = main.get_tree().get_nodes_in_group("pigs")
-	if pig.size() > 0:
+	var resting = main.get_tree().get_nodes_in_group("pigs")
+	if resting.size() > 0:
 		await frames(60)
-		ok("resting pig: contact force = its weight, upwards (normal force %.1f N vs m·g %.1f N)" % [pig[0].contact_force.y, pig[0].mass * 9.81], absf(pig[0].contact_force.y - pig[0].mass * 9.81) < 0.5)
+		ok("resting pig: contact force = its weight, upwards (normal force %.1f N vs m·g %.1f N)" % [resting[0].contact_force.y, resting[0].mass * 9.81], absf(resting[0].contact_force.y - resting[0].mass * 9.81) < 0.5)
 	print("DONE, fails=%d" % fails)
 	quit(fails)

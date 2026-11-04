@@ -310,9 +310,9 @@ func _add_button(parent: Container, text: String, on_pressed: Callable, tooltip:
 	return button
 
 
-func _set_spin(spin: SpinBox, value: float, hidden: bool, editable: bool):
+func _set_spin(spin: SpinBox, value: float, secret: bool, editable: bool):
 	spin.value = value
-	spin.get_line_edit().secret = hidden
+	spin.get_line_edit().secret = secret
 	spin.editable = editable
 
 
@@ -375,16 +375,16 @@ func _refresh():
 	var uses_column: bool = BirdTypes.TYPES[PhysicsParams.bird_type]["ability"] == "change"
 	for key in _rows:
 		var row: Dictionary = _rows[key]
-		var hidden := Reveal.is_hidden(key)
+		var secret := Reveal.is_hidden(key)
 		row["slider"].value = PhysicsParams.values[key]
-		row["slider"].editable = not hidden and not locked
-		row["slider"].modulate.a = 0.0 if hidden else 1.0
-		_set_spin(row["spin"], PhysicsParams.values[key], hidden, not hidden and not locked)
+		row["slider"].editable = not secret and not locked
+		row["slider"].modulate.a = 0.0 if secret else 1.0
+		_set_spin(row["spin"], PhysicsParams.values[key], secret, not secret and not locked)
 		if row.has("check"):
 			var on: bool = PhysicsParams.ability_on[key]
 			row["check"].button_pressed = on
 			row["check"].disabled = not uses_column or locked
-			_set_spin(row["ability_spin"], PhysicsParams.ability[key], hidden, uses_column and on and not hidden and not locked)
+			_set_spin(row["ability_spin"], PhysicsParams.ability[key], secret, uses_column and on and not secret and not locked)
 			row["ability_spin"].modulate = ABILITY_COLOR if uses_column and on else OFF_COLOR
 
 	var bird_info: Dictionary = BirdTypes.TYPES[PhysicsParams.bird_type]

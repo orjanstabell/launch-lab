@@ -22,7 +22,6 @@ func run():
 	P.set_rocket_value("fuel", 1.0); P.set_rocket_value("exhaust", 30.0); P.set_rocket_value("burn_rate", 0.8)
 	main.launch(); await frames(30)
 	var b = main.bird
-	var speed_before = b.velocity_m().length()
 	var e_before = b.total_energy()
 	ok("rocket bird can fire", P.can_activate())
 	P.activate()
