@@ -27,7 +27,7 @@ const DEFINITIONS := {
 	# Negative angles aim downward (useful from a raised launch point). "random"
 	# is the range Randomize uses, so a hidden angle stays a sensible upward shot.
 	"theta": {"label": "Angle", "symbol": "θ", "unit": "°", "default": 45.0, "min": -90.0, "max": 90.0, "step": 0.5, "random": [15.0, 75.0]},
-	"y0": {"label": "Height", "symbol": "y₀", "unit": "m", "default": 0.0, "min": 0.0, "max": 10.0, "step": 0.1},
+	"y0": {"label": "Height", "symbol": "y₀", "unit": "m", "default": 1.0, "min": 0.0, "max": 10.0, "step": 0.1},
 	"m": {"label": "Mass", "symbol": "m", "unit": "kg", "default": 1.0, "min": 0.1, "max": 10.0, "step": 0.1},
 }
 

@@ -25,7 +25,7 @@ static func generate(level_seed: int) -> Dictionary:
 static func _build(rng: RandomNumberGenerator) -> Dictionary:
 	var level := Level.blank()
 	level["description"] = "A random level: knock down every pig. (To keep it, Save it in the Editor tab.)"
-	level["launch"] = {"g": 9.81, "y0": 0.0}   # what the winnable check assumes
+	level["launch"] = {"g": 9.81, "y0": 1.0}   # what the winnable check assumes
 	var x := FIRST_X + rng.randf_range(0.0, 6.0)
 	for i in rng.randi_range(2, 3):
 		x = _add_prefab(level, PREFABS[rng.randi() % PREFABS.size()], x, rng) + rng.randf_range(2.0, 6.0)
@@ -74,13 +74,15 @@ static func _winnable(level: Dictionary) -> bool:
 	return true
 
 
-## Is there a launch (g = 9.81, y₀ = 0, v₀ within the slider) that reaches
+## Is there a launch (the level's g and y₀, v₀ within the slider) that reaches
 ## `target` without touching a block on the way?
 static func _has_clear_shot(level: Dictionary, target: Vector2) -> bool:
 	for theta in range(10, 82, 2):
 		var p := LaunchParams.new()
 		p.theta_deg = theta
-		p.v0 = Kinematics.solve_speed(theta, p.g, 0.0, target)
+		p.g = level["launch"]["g"]
+		p.y0 = level["launch"]["y0"]
+		p.v0 = Kinematics.solve_speed(theta, p.g, p.y0, target)
 		if is_nan(p.v0) or p.v0 > PhysicsParams.DEFINITIONS["v0"]["max"]:
 			continue
 		if path_clear(level, p, Kinematics.closest_approach(p, target).x):

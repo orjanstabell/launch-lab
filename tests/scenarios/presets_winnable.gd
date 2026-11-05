@@ -66,11 +66,11 @@ func run():
 				plan = [p.theta_deg, p.v0]; tap = (-b - sqrt(b * b - 4 * a * c)) / (2 * a)
 			elif preset.get("bird_type", "") == "matilda":   # fly over, drop the egg when its path crosses the pig
 				var above = pig + Vector2(0.0, 6.0)
-				plan = [50.0, K.solve_speed(50.0, 9.81, 0.0, above)]
+				plan = [50.0, K.solve_speed(50.0, 9.81, P.values["y0"], above)]
 				tap = -1.0
 			elif preset.get("bird_type", "") == "blue":   # a shot an earlier search showed clears all three
 				var middle = Vector2(preset["pigs"][1]["x"], preset["pigs"][1]["y"])
-				plan = [40.0, K.solve_speed(40.0, 9.81, 0.0, middle)]
+				plan = [40.0, K.solve_speed(40.0, 9.81, P.values["y0"], middle)]
 				var p = P.launch_params(); p.theta_deg = plan[0]; p.v0 = plan[1]
 				tap = K.closest_approach(p, middle).x * 0.5
 			else:
