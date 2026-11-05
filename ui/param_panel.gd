@@ -96,7 +96,7 @@ func _add_bird_picker(box: VBoxContainer):
 			continue
 		var button := Button.new()
 		button.text = info["name"]
-		button.icon = _dot(info["color"])   # the bird's colour; the name stays readable text
+		button.icon = _bird_picture(type)   # the bird itself; the name stays readable text
 		button.toggle_mode = true
 		button.button_group = group
 		button.custom_minimum_size = Vector2(0, 34)
@@ -205,16 +205,17 @@ func _add_ability_cell(cell: Control):
 	_ability_cells.append(cell)
 
 
-## A round dot of the bird's colour for its button, ringed so it shows on a lit button too.
-static func _dot(color: Color) -> ImageTexture:
-	var image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
-	for y in 16:
-		for x in 16:
-			var r := Vector2(x + 0.5, y + 0.5).distance_to(Vector2(8, 8))
-			var fill := Color(color, clampf(6.5 - r, 0.0, 1.0))
-			var ring := Color(UiTheme.BG, clampf(8.0 - r, 0.0, 1.0))
-			image.set_pixel(x, y, ring.blend(fill))
-	return ImageTexture.create_from_image(image)
+## The bird's picture for its button: BirdArt drawn once into a small transparent viewport.
+func _bird_picture(type: String) -> ViewportTexture:
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(28, 28)
+	viewport.transparent_bg = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	var canvas := Node2D.new()
+	canvas.draw.connect(func(): BirdArt.draw_bird(canvas, Vector2(13, 15), 9.0, type))
+	viewport.add_child(canvas)
+	add_child(viewport)
+	return viewport.get_texture()
 
 
 const ROW_TIPS := {
