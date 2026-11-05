@@ -82,6 +82,7 @@ static func parse(json: String) -> Dictionary:
 	if not (parsed is Dictionary) or not (parsed.get("name") is String):
 		return {}
 	var level: Dictionary = parsed
+	Level.migrate(level)
 	# Fill in anything an older or hand-made file leaves out (or has the wrong kind of value for).
 	var blank := Level.blank(level["name"])
 	for key in blank:

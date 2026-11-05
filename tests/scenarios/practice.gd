@@ -28,7 +28,8 @@ func answer_and_check(panel, values):
 func run():
 	await frames(10)
 	P.set_value("v0", 17.0); R.set_hidden("m", true)
-	main.show_topic(4)
+	P.set_rocket_value("fuel", 1.5); P.set_split("pieces", 4)
+	main.show_topic(3)
 	var panel = main.find_children("*", "PracticePanel", true, false)[0]
 	# Control, two unknowns: two pigs
 	pick(panel, "Two pigs"); panel.new_problem()
@@ -69,6 +70,7 @@ func run():
 	await frames(3)
 	ok("leaving the tab ends the problem", panel.problem == null)
 	ok("values restored (v0 = %.1f), unlocked, tower back" % P.values["v0"], is_equal_approx(P.values["v0"], 17.0) and not P.inputs_locked and P.manual_launch_allowed and main.level.get_child_count() > 0)
+	ok("rocket fuel (%.2f) and split pieces (%d) restored" % [P.rocket["fuel"], P.split["pieces"]], is_equal_approx(P.rocket["fuel"], 1.5) and P.split["pieces"] == 4 and P.split["speed"] < 0.0 and P.egg["back_speed"] < 0.0)
 	ok("hidden values restored", R.is_hidden("m") and not R.is_hidden("predict") and not R.is_hidden("v0"))
 	print("DONE, fails=%d" % fails)
 	quit(fails)

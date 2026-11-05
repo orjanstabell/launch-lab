@@ -66,5 +66,10 @@ func run():
 	var lost = 1.0 - info["p_after"].length() / info["p_before"].length()
 	ok("game-style split loses momentum (%.2f%%)" % (lost * 100), lost > 0.001)
 	ok("game-style keeps speed", abs(info["speed_after"] - info["speed_before"]) < 1e-4)
+	# 2 pieces at ±90° (a hand-edited level): no forward momentum to conserve, so no absurd speed-up
+	P.set_split("conserve", true); P.set_split("pieces", 2); P.set_split("spread", 90.0)
+	main.launch(); await frames(25); b = main.bird
+	var sideways = b.split_segments()
+	ok("±90° split keeps a sane speed (%.1f m/s)" % sideways[0].v0, sideways[0].v0 < 100.0)
 	print("DONE, fails=%d" % fails)
 	quit(fails)

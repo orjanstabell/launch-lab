@@ -53,7 +53,7 @@ func run():
 		var pa = c["bird_m"] * c["bird_after"] + c["other_m"] * c["other_after"]
 		print("      Σp before (%.2f, %.2f)  after (%.2f, %.2f)   KE %.1f → %.1f J" % [pb.x, pb.y, pa.x, pa.y, c["ke_before"], c["ke_after"]])
 		ok("KE lost in the hit", c["ke_after"] < c["ke_before"])
-		var energy_formulas = main.topics[3].details.get_child(0)   # the Energy tab's Formulas panel
+		var energy_formulas = main.topics[2].details.get_child(0).get_child(0)   # the Energy tab's Formulas text (in its panel)
 		ok("Energy formulas panel shows the last hit's KE before/after", "LAST HIT" in "\n".join(energy_formulas._build_lines()))
 	# A clean sideways hit with no gravity: nothing else pushes, so Σp must be kept
 	P.set_value("g", 0.0); P.set_value("y0", 2.3); P.set_value("theta", 0.0); P.set_value("v0", 12.0)

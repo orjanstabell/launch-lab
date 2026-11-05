@@ -21,7 +21,8 @@ func body_positions():
 func run():
 	await frames(10)
 	var presets = load("res://levels/level_presets.gd").all()
-	for preset in presets:
+	ok("a seed always gives the same random level", load("res://levels/level_generator.gd").generate(7) == load("res://levels/level_generator.gd").generate(7) and not load("res://levels/level_generator.gd").generate(7)["pigs"].is_empty())
+	for preset in presets + [load("res://levels/level_generator.gd").generate(1), load("res://levels/level_generator.gd").generate(2), load("res://levels/level_generator.gd").generate(3), load("res://levels/level_generator.gd").generate(5), load("res://levels/level_generator.gd").generate(6)]:
 		main.load_level(preset)
 		await frames(5)
 		var start = body_positions()
@@ -36,8 +37,8 @@ func run():
 	ok("'Find the hidden g': g hidden, randomized (g = %.2f)" % P.values["g"], R.is_hidden("g") and not is_equal_approx(P.values["g"], 9.81))
 	R.show_all()
 	# Editor
-	var levels_panel = main.topics[6].editor_panel
-	main.show_topic(6)
+	var levels_panel = main.topics[5].editor_panel
+	main.show_topic(5)
 	await frames(2)
 	levels_panel._new_level()
 	await frames(2)
@@ -63,10 +64,10 @@ func run():
 	ok("dragging moved the box to x = 14, onto the ground (%s)" % [main.level_data["blocks"][1]], is_equal_approx(main.level_data["blocks"][1]["x"], 14.0) and is_equal_approx(main.level_data["blocks"][1]["y"], 0.3))
 	click.call(Vector2(14.0, 0.3), MOUSE_BUTTON_RIGHT)
 	ok("right-click deleted it", main.level_data["blocks"].size() == 1)
-	main.show_topic(5)   # leaving the Editor tab stops editing
+	main.show_topic(4)   # leaving the Editor tab stops editing
 	await frames(2)
 	ok("leaving the Editor tab unfreezes the pieces", not main.editor.active and not main.level.get_child(0).freeze)
-	main.show_topic(6)
+	main.show_topic(5)
 	await frames(2)
 	# Save / rename / copy / delete
 	var store = load("res://levels/level_store.gd")
@@ -103,7 +104,7 @@ func run():
 	DirAccess.remove_absolute(path)
 	ok("export/import round trip", imported["name"] == "zz exported" and imported["pigs"].size() == 1)
 	# Importing a level whose name is taken saves it as a copy, never over the saved one
-	var import_panel = main.topics[5].levels_panel
+	var import_panel = main.topics[4].levels_panel
 	var clash = store.read(store.path_for("zz test level renamed"))
 	clash["description"] = "Imported task"
 	import_panel._import_level(clash)
@@ -127,13 +128,24 @@ func run():
 	await frames(5)
 	ok("broken file: only the good block and pig load (%d, %d), bad settings skipped" % [main.level.get_child_count(), sane["pigs"].size()],
 		sane["blocks"].size() == 1 and sane["pigs"].size() == 1 and P.bird_type == bird_before and P.launch_mode == "speed" and is_equal_approx(P.values["theta"], 30.0) and P.split["pieces"] >= 2 and main.current_topic == 0)
+	# Version 1 files had separate Forces and Momentum tabs: they still open on the same tab
+	var v1 = func(topic): return store.parse(JSON.stringify({"name": "zz old", "version": 1, "topic": topic, "blocks": [], "pigs": []}))
+	var unversioned = store.parse(JSON.stringify({"name": "zz old", "topic": 4, "blocks": [], "pigs": []}))
+	var current = store.parse(JSON.stringify({"name": "zz new", "version": 2, "topic": 2, "blocks": [], "pigs": []}))
+	ok("version 1 levels open on the same tab (Forces %s, Momentum %s, Energy %s, Practice %s → 1, 1, 2, 3); version 2 keeps %s" % [v1.call(1)["topic"], v1.call(2)["topic"], v1.call(3)["topic"], unversioned["topic"], current["topic"]],
+		v1.call(1)["topic"] == 1 and v1.call(2)["topic"] == 1 and v1.call(3)["topic"] == 2 and unversioned["topic"] == 3 and current["topic"] == 2 and v1.call(2)["version"] == 2)
 	# load the saved level back
 	P.set_value("g", 9.81)
 	P.set_rocket_value("fuel", 0.5)
 	main.load_level(store.read(store.path_for("zz test level renamed")))
 	ok("loading a saved level restores its g (%.2f), rocket fuel (%.2f) and banner" % [P.values["g"], P.rocket["fuel"]],
 		is_equal_approx(P.values["g"], 5.5) and is_equal_approx(P.rocket["fuel"], 2.0) and "Test task" in main.banner.text)
-	store.delete("zz test level renamed")
+	# Deleting in the Levels tab takes a second click (there's no undo)
+	import_panel.refresh("zz test level renamed")
+	import_panel._delete_selected()
+	var kept_after_one: bool = store.exists("zz test level renamed") and "again" in import_panel._status.text
+	import_panel._delete_selected()
+	ok("Delete asks first, the second click deletes", kept_after_one and not store.exists("zz test level renamed"))
 	# multi-pig message
 	main.load_level(presets[5])
 	await frames(30)

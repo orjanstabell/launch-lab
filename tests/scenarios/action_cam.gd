@@ -36,6 +36,12 @@ func run():
 			break
 	ok("the sensor triggered the action cam before the hit (bird %.2f m from the pig, still flying: %s)" % [bird_dist, main.bird.state == 0], triggered and main.bird.state == 0)
 	ok("slow motion on (time scale %.2f), overlay shown" % Engine.time_scale, is_equal_approx(Engine.time_scale, 0.12) and main.action_overlay.visible)
+	# Paused mid close-up: it waits, however long you look (pretend 10 s pass)
+	paused = true
+	main.action["last_tick"] -= 10000
+	main._update_action_cam()
+	ok("paused: the action cam waits instead of zooming out", not main.action.is_empty())
+	paused = false
 	await frames(30)
 	ok("camera zooms in (zoom %.2f, heading to 3)" % main.view_zoom, main.view_zoom > 1.2)
 	var saw_contact := 0.0
@@ -46,6 +52,12 @@ func run():
 		if main.action.is_empty(): break
 	ok("a big contact force on the pig was measured (%.0f N)" % saw_contact, saw_contact > 100.0)
 	ok("afterwards: back to normal speed (%.2f) and overlay hidden" % Engine.time_scale, is_equal_approx(Engine.time_scale, 1.0) and not main.action_overlay.visible)
+	# S pressed during a close-up (0.5×): when it ends, the game runs at what the button shows
+	main.action = {"saved": "anything"}; Engine.time_scale = 0.12
+	sim.cycle_speed()
+	main._end_action_cam()
+	ok("S during the action cam sticks afterwards (%.2f)" % Engine.time_scale, is_equal_approx(Engine.time_scale, 0.5))
+	sim.cycle_speed(); sim.cycle_speed(); sim.cycle_speed()   # back to 1×
 	var resting = main.get_tree().get_nodes_in_group("pigs")
 	if resting.size() > 0:
 		await frames(60)

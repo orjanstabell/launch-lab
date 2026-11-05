@@ -4,7 +4,9 @@ extends RefCounted
 ## Only one topic is shown at a time, so you can focus on one idea. A topic owns:
 ##   panel:    compact live numbers, in the dock under the ground (always shown)
 ##   details:  the formulas and explanations, floating over the sky; only shown
-##             when "Formulas" is switched on, so the sky stays clear by default
+##             when "Formulas" is switched on, so the sky stays clear by default.
+##             Each add_details() gets its own panel, side by side (not stacked,
+##             which could run off the bottom of the sky)
 ##   overlays: drawn in the world, each with an on/off checkbox in the panel
 ##
 ## To add a topic: extend this class, call add_content() / add_details() /
@@ -14,22 +16,26 @@ const PANEL_WIDTH := 670.0   # the same for every topic, so switching tabs doesn
 
 var title := ""
 var panel := PanelContainer.new()
-var details := PanelContainer.new()
+var details := HBoxContainer.new()
 var overlays: Array[Node2D] = []
 
 var _content := VBoxContainer.new()
 var _options := HFlowContainer.new()   # one checkbox per overlay (wraps onto a second line if needed)
 var _enabled := {}   # overlay -> is its checkbox ticked?
+var _only_for_bird := {}   # checkbox -> the bird type it's shown for (its overlay draws nothing for the others)
 var _shown := false
 var _show_details := false
 
 
 func _init():
 	panel.custom_minimum_size.x = PANEL_WIDTH
+	details.add_theme_constant_override("separation", 12)
 	_content.add_theme_constant_override("separation", 8)
 	_options.add_theme_constant_override("h_separation", 20)
 	panel.add_child(_content)
 	_content.add_child(_options)
+	PhysicsParams.values_changed.connect(_update_options)
+	PhysicsParams.flight_changed.connect(_update_options)
 
 
 ## Adds a control to the dock panel (above the overlay checkboxes).
@@ -38,13 +44,17 @@ func add_content(control: Control):
 	_content.move_child(control, _options.get_index())
 
 
-## Sets what the floating details panel shows.
+## Adds a panel to the floating details (the formulas and explanations).
 func add_details(control: Control):
-	details.add_child(control)
+	var box := PanelContainer.new()
+	box.size_flags_vertical = Control.SIZE_SHRINK_BEGIN   # each panel only as tall as its text
+	box.add_child(control)
+	details.add_child(box)
 
 
 ## Adds a world overlay, plus a checkbox in the panel that turns it on and off.
-func add_overlay(overlay: Node2D, checkbox_text: String, on := true, tooltip := ""):
+## only_for_bird: show the checkbox only while that bird is picked or in the air.
+func add_overlay(overlay: Node2D, checkbox_text: String, on := true, tooltip := "", only_for_bird := ""):
 	overlay.process_mode = Node.PROCESS_MODE_ALWAYS   # keep drawing while paused
 	overlays.append(overlay)
 	_enabled[overlay] = on
@@ -56,6 +66,15 @@ func add_overlay(overlay: Node2D, checkbox_text: String, on := true, tooltip := 
 	check.focus_mode = Control.FOCUS_NONE   # so Space doesn't toggle it
 	check.toggled.connect(_on_option_toggled.bind(overlay))
 	_options.add_child(check)
+	if only_for_bird != "":
+		_only_for_bird[check] = only_for_bird
+		_update_options()
+
+
+func _update_options():
+	var flying: String = PhysicsParams.bird.type if is_instance_valid(PhysicsParams.bird) else ""
+	for check in _only_for_bird:
+		check.visible = _only_for_bird[check] in [PhysicsParams.bird_type, flying]
 
 
 func set_shown(shown: bool, show_details: bool):

@@ -17,13 +17,7 @@ func pigs_left():
 	return main.get_tree().get_nodes_in_group("pigs").size()
 func path_clear(preset, theta, v0, target):
 	var p = P.launch_params(); p.theta_deg = theta; p.v0 = v0
-	var t_end = K.closest_approach(p, target).x
-	for i in int(t_end / 0.01):
-		var at = K.position(p, i * 0.01)
-		for b in preset["blocks"]:
-			if absf(at.x - b["x"]) < b["w"] / 2.0 + 0.35 and absf(at.y - b["y"]) < b["h"] / 2.0 + 0.35:
-				return false
-	return true
+	return load("res://levels/level_generator.gd").path_clear(preset, p, K.closest_approach(p, target).x)
 ## Does the egg's path reach the pig without clipping a block on the way?
 func egg_path_clear(path, until):
 	for i in int(until / 0.005):
@@ -52,7 +46,8 @@ func fly(theta, v0, tap):
 		if pigs_left() == 0: break
 func run():
 	await frames(5)
-	for preset in load("res://levels/level_presets.gd").all():
+	# The built-in levels, and a few random ones
+	for preset in load("res://levels/level_presets.gd").all() + [load("res://levels/level_generator.gd").generate(1), load("res://levels/level_generator.gd").generate(2), load("res://levels/level_generator.gd").generate(3), load("res://levels/level_generator.gd").generate(4)]:
 		main.load_level(preset)
 		await frames(30)
 		var total = pigs_left()

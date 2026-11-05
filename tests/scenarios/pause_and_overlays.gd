@@ -41,14 +41,14 @@ func run():
 	ok("paused: the bird and its exhaust both hold still", is_equal_approx(exhaust._time, time_before) and exhaust.puff_position(exhaust.puffs[0]) == puff_before and main.bird.position == bird_before)
 	var motion_overlays = main.topics[0].overlays
 	ok("Motion topic has exhaust and pig arrows", motion_overlays.any(func(o): return kind(o) == "ExhaustOverlay") and motion_overlays.any(func(o): return kind(o) == "PigOverlay"))
-	ok("the Pause button says Resume", controls._pause_button.text == "Resume")
+	ok("the Pause button says Resume", controls._pause_button.text.begins_with("Resume") and controls._pause_button.button_pressed)
 
 	# Resetting the level unpauses
 	main.reset_level()
 	await process_frame
 	await process_frame
 	ok("reset unpauses", not paused)
-	ok("the Pause button follows", controls._pause_button.text == "Pause")
+	ok("the Pause button follows", controls._pause_button.text.begins_with("Pause") and not controls._pause_button.button_pressed)
 
 	# Pig arrows in Forces: a resting pig's contact force holds it up (≈ m·g)
 	P.set_bird_type("red")
@@ -74,6 +74,23 @@ func run():
 	for line in FileAccess.get_file_as_string("res://scenes/action_cam_overlay.gd").split("\n"):
 		if "is_in_group(\"pigs\")" in line: drawn = true
 	ok("the action cam no longer skips pigs that left the 'pigs' group", not drawn)
+
+	# The big button does what Space does: launch, then the bird's ability; off while editing
+	P.set_bird_type("blue")
+	main.reset_level()
+	await process_frame
+	var said_before: String = main.main_button.text
+	main.main_button.pressed.emit()
+	await frames(10)
+	var said_flying: String = main.main_button.text
+	main.main_button.pressed.emit()
+	await frames(2)
+	ok("big button: '%s', then '%s', and that split the bird" % [said_before, said_flying],
+		said_before.begins_with("Launch") and said_flying.begins_with("Split") and is_instance_valid(main.bird) and not main.bird.pieces.is_empty())
+	main.set_editing(true)
+	ok("big button is off while editing", main.main_button.disabled)
+	main.set_editing(false)
+	P.set_bird_type("red")
 
 	# Tooltips on every button and checkbox
 	var missing := []

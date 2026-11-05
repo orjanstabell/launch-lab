@@ -94,7 +94,7 @@ func _forces(at: Vector2, mass: float, g: float, contact: Vector2, who: String, 
 
 ## Arrow length grows with log₁₀ of the force, so 10 N and 3000 N both fit.
 func _arrow(from: Vector2, force: Vector2, color: Color, text: String, side: float, k: float):
-	var length := 40.0 * log(1.0 + force.length()) / log(10.0) * k
+	var length := DrawUtil.log_arrow_length(force.length()) * k
 	var tip := from + Vector2(force.x, -force.y).normalized() * length
 	DrawUtil.arrow(self, from, tip, color)
 	DrawUtil.label(self, tip, Vector2(8 * side, 4), text, color, side < 0.0)

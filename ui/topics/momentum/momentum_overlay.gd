@@ -55,14 +55,15 @@ func _draw():
 	var t_unsplit := bird.split_t + bird.flight_time - bird.split_flight_time
 	var unsplit := Units.to_px(Kinematics.position(bird.pre_split, t_unsplit))
 	draw_arc(unsplit, 12.0 * k, 0.0, TAU, 24, UNSPLIT_COLOR, 2.5 * k, true)
-	DrawUtil.label(self, unsplit, Vector2(-16, 30), "unsplit bird", UNSPLIT_COLOR, true)
+	# Both labels behind the marker (the pieces fly on ahead of it, fanned above and below).
+	DrawUtil.label(self, unsplit, Vector2(-22, 14), "unsplit bird (o)", UNSPLIT_COLOR, true)
 
 	var size := 10.0 * k
 	draw_line(com - Vector2(size, 0), com + Vector2(size, 0), COM_COLOR, 3.0 * k)
 	draw_line(com - Vector2(0, size), com + Vector2(0, size), COM_COLOR, 3.0 * k)
 	_p_arrow(com, total_p, k, COM_COLOR)
 	DrawUtil.label(self, com + _arrow_vector(total_p, k), Vector2(10, -6), "Σp = %s kg·m/s" % Reveal.num(total_p.length(), ["p", "m", "v"]), COM_COLOR)
-	DrawUtil.label(self, com, Vector2(16, 30), "center of mass", COM_COLOR)
+	DrawUtil.label(self, com, Vector2(-22, -8), "center of mass (+)", COM_COLOR, true)
 
 
 func _draw_pigs(k: float):

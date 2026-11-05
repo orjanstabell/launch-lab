@@ -9,7 +9,17 @@ extends RefCounted
 ##   target: [x, y] for solve mode; topic: which topic tab to show
 ## capture() reads the current settings into a level; apply_settings() does the reverse.
 
-const VERSION := 1
+const VERSION := 2   # 2: Forces and Momentum became one tab, so the tabs after them moved up one
+
+
+## Brings a level saved by an older version up to date (call it before anything reads it).
+static func migrate(level: Dictionary):
+	var version: Variant = level.get("version", 1)
+	if not (version is float or version is int) or version < 2:
+		var topic: Variant = level.get("topic")
+		if topic is float or topic is int:   # version 1: Motion, Forces, Momentum, Energy, Practice
+			level["topic"] = [0, 1, 1, 2, 3][clampi(int(topic), 0, 4)]
+	level["version"] = VERSION
 
 
 ## An empty level with the default settings.

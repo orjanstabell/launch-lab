@@ -137,18 +137,7 @@ func new_problem():
 		if problem.generate():
 			break
 
-	_saved = {
-		"values": PhysicsParams.values.duplicate(),
-		"bird_type": PhysicsParams.bird_type,
-		"ability": PhysicsParams.ability.duplicate(),
-		"ability_on": PhysicsParams.ability_on.duplicate(),
-		"hidden": Reveal.hidden.duplicate(),
-		"launch_mode": PhysicsParams.launch_mode,
-		"spring": PhysicsParams.spring.duplicate(),
-		"egg": PhysicsParams.egg.duplicate(),
-		"rocket": PhysicsParams.rocket.duplicate(),
-		"split": PhysicsParams.split.duplicate(),
-	}
+	_saved = Level.capture({}, 0)   # the same settings a saved level keeps
 	# The launch mode first: in spring mode, setting m recomputes v₀ from the spring.
 	PhysicsParams.set_launch_mode(problem.launch.get("mode", "speed"))
 	for key in problem.launch:
@@ -200,25 +189,8 @@ func end_problem():
 		return
 	problem = null
 	_watching = {}
-	for key in _saved["spring"]:
-		PhysicsParams.set_spring_value(key, _saved["spring"][key])
-	PhysicsParams.set_launch_mode(_saved["launch_mode"])
-	for key in ["mass", "speed"]:
-		PhysicsParams.set_egg_value(key, _saved["egg"][key])
-	PhysicsParams.set_egg_back_speed(-1.0)
-	for key in _saved["rocket"]:
-		PhysicsParams.set_rocket_value(key, _saved["rocket"][key])
-	for key in _saved["split"]:
-		PhysicsParams.set_split(key, _saved["split"][key])
-	for key in _saved["values"]:
-		PhysicsParams.set_value(key, _saved["values"][key])
-	PhysicsParams.set_launch_mode(_saved["launch_mode"])
-	PhysicsParams.set_bird_type(_saved["bird_type"])
-	for key in _saved["ability_on"]:
-		PhysicsParams.set_ability_on(key, _saved["ability_on"][key])
-		PhysicsParams.set_ability_value(key, _saved["ability"][key])
-	for key in _saved["hidden"]:
-		Reveal.set_hidden(key, _saved["hidden"][key])
+	Level.apply_settings(_saved)
+	PhysicsParams.set_egg_back_speed(-1.0)   # practice-only, so levels don't keep it
 	PhysicsParams.show_level = true
 	PhysicsParams.set_inputs_locked(false)
 	PhysicsParams.request_reset()

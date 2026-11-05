@@ -203,7 +203,7 @@ static func solve_two_points(y0: float, a: Vector2, b: Vector2, g: float) -> Vec
 ## A rocket segment lands either during the burn (found by stepping through it,
 ## then narrowing down) or after it (the ordinary formula from burnout).
 static func _rocket_time_of_flight(p: LaunchParams) -> float:
-	var step := 0.002
+	var step := maxf(0.002, p.burn_time / 500.0)   # at most ~500 steps, so a long burn stays fast
 	var previous := 0.0
 	for i in range(1, int(p.burn_time / step) + 2):
 		var t := minf(i * step, p.burn_time)
@@ -222,13 +222,26 @@ static func _rocket_time_of_flight(p: LaunchParams) -> float:
 ## The highest point of a rocket segment: during the burn (stepped through) or
 ## after it (the ordinary apex from burnout), whichever is higher.
 static func _rocket_time_to_apex(p: LaunchParams) -> float:
+	var step := maxf(0.01, p.burn_time / 500.0)   # at most ~500 steps, so a long burn stays fast
 	var best_t := 0.0
 	var best_y := p.y0
-	for i in range(1, int(p.burn_time / 0.01) + 1):
-		var y := position(p, i * 0.01).y
+	for i in range(1, int(p.burn_time / step) + 1):
+		var y := position(p, i * step).y
 		if y > best_y:
 			best_y = y
-			best_t = i * 0.01
+			best_t = i * step
+	# Narrow down to where vy = 0 next to the highest step (bisect: rising before, falling after).
+	var low := maxf(best_t - step, 0.0)
+	var high := minf(best_t + step, p.burn_time)
+	if best_t > 0.0 and velocity(p, low).y > 0.0 and velocity(p, high).y <= 0.0:
+		for j in 30:
+			var middle := (low + high) / 2.0
+			if velocity(p, middle).y > 0.0:
+				low = middle
+			else:
+				high = middle
+		best_t = low
+		best_y = position(p, best_t).y
 	var after := after_burn(p)
 	var after_apex := time_to_apex(after)
 	if not is_inf(after_apex) and position(after, after_apex).y > best_y:

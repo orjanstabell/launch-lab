@@ -1,23 +1,23 @@
 class_name ParamPanel
 extends PanelContainer
-## Two columns of parameters:
+## The launch values, and the bird:
 ##   Launch:      what every new bird starts with (slider + number box)
-##   On Activate: the ability of birds that "change" (yellow, custom). Tick what
-##                it should change and set the new value; press Activate (Space)
-##                mid-air to use it. Picking the yellow bird fills it in for you.
-## Under that: the bird picker with Launch/Activate, and the blue bird's split
-## settings. Kept compact for the dock: explanations live in tooltips.
+##   On activate: only for birds that "change" (yellow, custom). Tick what the
+##                ability should change and set the new value; use it mid-air
+##                with Space or the big button. Picking the yellow bird fills it in.
+## Under that: the bird picker, and the picked bird's own settings (split,
+## rocket, egg) or what it does. Launching is the big button in the next column.
+## Kept compact for the dock: explanations live in tooltips.
 ## "Spring launch" swaps the speed row for the spring's k and pull Δx; v₀ is
 ## then worked out from them (shown in the Launch header).
 
-signal launch_requested
-
-const ABILITY_COLOR := Color(1.0, 0.85, 0.2)
+const ABILITY_COLOR := Color(1.0, 0.85, 0.2)   # the same yellow as the ability's dotted path
 const OFF_COLOR := Color(1, 1, 1, 0.4)
+const PANEL_WIDTH := 700.0   # fixed, so the On activate column comes and goes without moving the dock
 
+var _grid: GridContainer
+var _ability_cells: Array[Control] = []   # the On activate column: shown only for "change" birds
 var _rows := {}   # key -> {"slider", "spin", "check", "ability_spin"} (the ability ones are missing for y₀)
-var _activate_button: Button
-var _launch_button: Button
 var _bird_buttons := {}   # bird type -> Button
 var _bird_about: Label
 var _split_row: HBoxContainer
@@ -40,27 +40,35 @@ var _spring_spins := {}   # "k" / "pull" -> SpinBox, shown in spring mode
 
 
 func _ready():
+	custom_minimum_size.x = PANEL_WIDTH
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
 	add_child(box)
 
-	var grid := GridContainer.new()
-	grid.columns = 5
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 4)
-	box.add_child(grid)
+	_grid = GridContainer.new()
+	_grid.columns = 5
+	_grid.add_theme_constant_override("h_separation", 10)
+	_grid.add_theme_constant_override("v_separation", 4)
+	box.add_child(_grid)
+	# Header row: Launch | v₀ from the spring (spring mode) | Spring launch | On activate | -
+	_grid.add_child(UiTheme.heading("Launch"))
+	_launch_header = Label.new()
+	_launch_header.add_theme_color_override("font_color", UiTheme.TEXT_DIM)
+	_grid.add_child(_launch_header)
 	_spring_toggle = Button.new()
 	_spring_toggle.text = "Spring launch"
 	_spring_toggle.toggle_mode = true
 	_spring_toggle.focus_mode = Control.FOCUS_NONE
 	_spring_toggle.tooltip_text = "Launch with the slingshot's spring: set k and the pull Δx,\nand v₀ = Δx·√(k/m) follows from ½·k·Δx² = ½·m·v₀².\nA heavier bird then launches slower!"
-	_spring_toggle.add_theme_color_override("font_pressed_color", ABILITY_COLOR)
 	_spring_toggle.toggled.connect(_on_spring_toggled)
-	grid.add_child(_spring_toggle)
-	_add_header(grid, ["Launch", "", "On Activate", ""])
-	_launch_header = grid.get_child(grid.get_child_count() - 4)
+	_grid.add_child(_spring_toggle)
+	var ability_title := UiTheme.heading("On activate")
+	ability_title.tooltip_text = "What the yellow / custom bird's ability changes when you use it mid-air (Space)"
+	ability_title.mouse_filter = Control.MOUSE_FILTER_PASS   # (so the tooltip shows)
+	_add_ability_cell(ability_title)
+	_add_ability_cell(Control.new())
 	for key in PhysicsParams.DEFINITIONS:
-		_add_row(grid, key)
+		_add_row(_grid, key)
 
 	_add_bird_picker(box)
 	_add_split_row(box)
@@ -68,7 +76,6 @@ func _ready():
 	_add_egg_row(box)
 
 	PhysicsParams.values_changed.connect(_refresh)
-	PhysicsParams.flight_changed.connect(_refresh)
 	Reveal.changed.connect(_refresh)
 	_refresh()
 
@@ -77,8 +84,9 @@ func _add_bird_picker(box: VBoxContainer):
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
 	box.add_child(row)
-	var title := Label.new()
-	title.text = "Bird  "
+	var title := UiTheme.heading("Bird")
+	title.custom_minimum_size.x = 50
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(title)
 
 	var group := ButtonGroup.new()
@@ -88,22 +96,15 @@ func _add_bird_picker(box: VBoxContainer):
 			continue
 		var button := Button.new()
 		button.text = info["name"]
+		button.icon = _dot(info["color"])   # the bird's colour; the name stays readable text
 		button.toggle_mode = true
 		button.button_group = group
 		button.custom_minimum_size = Vector2(0, 34)
 		button.focus_mode = Control.FOCUS_NONE
 		button.tooltip_text = info["about"]
-		button.add_theme_color_override("font_color", info["color"])
-		button.add_theme_color_override("font_pressed_color", info["color"].lightened(0.4))
 		button.pressed.connect(PhysicsParams.set_bird_type.bind(type))
 		row.add_child(button)
 		_bird_buttons[type] = button
-
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(spacer)
-	_launch_button = _add_button(row, "Launch", launch_requested.emit, "Launch the next bird with these values (Space)")
-	_activate_button = _add_button(row, "Activate", PhysicsParams.activate, "Use the flying bird's ability (Space)")
 
 	# One line under the picker: what the bird does, or the blue bird's split settings.
 	_bird_about = Label.new()
@@ -199,12 +200,21 @@ func _add_egg_row(box: VBoxContainer):
 	_egg_row.add_child(_egg_result)
 
 
-func _add_header(grid: GridContainer, titles: Array):
-	for title in titles:
-		var label := Label.new()
-		label.text = title
-		label.add_theme_font_size_override("font_size", 20)
-		grid.add_child(label)
+func _add_ability_cell(cell: Control):
+	_grid.add_child(cell)
+	_ability_cells.append(cell)
+
+
+## A round dot of the bird's colour for its button, ringed so it shows on a lit button too.
+static func _dot(color: Color) -> ImageTexture:
+	var image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+	for y in 16:
+		for x in 16:
+			var r := Vector2(x + 0.5, y + 0.5).distance_to(Vector2(8, 8))
+			var fill := Color(color, clampf(6.5 - r, 0.0, 1.0))
+			var ring := Color(UiTheme.BG, clampf(8.0 - r, 0.0, 1.0))
+			image.set_pixel(x, y, ring.blend(fill))
+	return ImageTexture.create_from_image(image)
 
 
 const ROW_TIPS := {
@@ -267,21 +277,21 @@ func _add_row(grid: GridContainer, key: String):
 		var check := CheckBox.new()
 		check.focus_mode = Control.FOCUS_NONE   # so Space doesn't toggle it
 		check.toggled.connect(_on_ability_toggled.bind(key))
-		check.tooltip_text = "Tick: Activate changes %s to the value on the right (yellow and custom birds)" % def["symbol"]
-		grid.add_child(check)
+		check.tooltip_text = "Tick: the ability changes %s to the value on the right" % def["symbol"]
+		_add_ability_cell(check)
 		row["check"] = check
 
 		var ability_spin := _make_spin_box(def, ability_def["min"], ability_def["max"])
 		ability_spin.value_changed.connect(_on_ability_changed.bind(key))
-		ability_spin.tooltip_text = "The new %s after Activate (when ticked)" % def["symbol"]
-		grid.add_child(ability_spin)
+		ability_spin.tooltip_text = "The new %s after the ability (when ticked)" % def["symbol"]
+		_add_ability_cell(ability_spin)
 		row["ability_spin"] = ability_spin
 	else:
-		grid.add_child(Control.new())
+		_add_ability_cell(Control.new())
 		var note := Label.new()
 		note.text = "launch only"
 		note.modulate = OFF_COLOR
-		grid.add_child(note)
+		_add_ability_cell(note)
 
 	_rows[key] = row
 
@@ -292,22 +302,11 @@ func _make_spin_box(def: Dictionary, min_value: float, max_value: float) -> Spin
 	spin.max_value = max_value
 	spin.step = def["step"]
 	spin.suffix = def["unit"]
-	spin.custom_minimum_size.x = 112
+	spin.custom_minimum_size.x = 120
 	# After typing a number + Enter, drop focus so Space and Enter work as shortcuts again.
 	var line_edit := spin.get_line_edit()
 	line_edit.text_submitted.connect(func(_text): line_edit.release_focus())
 	return spin
-
-
-func _add_button(parent: Container, text: String, on_pressed: Callable, tooltip: String) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.tooltip_text = tooltip
-	button.custom_minimum_size = Vector2(100, 36)
-	button.focus_mode = Control.FOCUS_NONE   # so Space/Enter don't "click" the last pressed button
-	button.pressed.connect(on_pressed)
-	parent.add_child(button)
-	return button
 
 
 func _set_spin(spin: SpinBox, value: float, secret: bool, editable: bool):
@@ -371,8 +370,11 @@ func _on_ability_changed(value: float, key: String):
 func _refresh():
 	_refreshing = true
 	var locked := PhysicsParams.inputs_locked
-	# Only "change" birds (yellow, custom) use the On Activate column.
+	# Only "change" birds (yellow, custom) use the On activate column: the others don't see it.
 	var uses_column: bool = BirdTypes.TYPES[PhysicsParams.bird_type]["ability"] == "change"
+	for cell in _ability_cells:
+		cell.visible = uses_column
+	_grid.columns = 5 if uses_column else 3   # (a grid skips hidden cells, so it needs fewer columns)
 	for key in _rows:
 		var row: Dictionary = _rows[key]
 		var secret := Reveal.is_hidden(key)
@@ -417,7 +419,6 @@ func _refresh():
 	_split_pieces.editable = not locked
 	_split_spread.editable = not locked
 	_split_conserve.disabled = locked
-	_launch_button.disabled = not PhysicsParams.manual_launch_allowed
 
 	# Spring mode: k and Δx instead of v₀; v₀ shown in the header.
 	var spring_mode := PhysicsParams.launch_mode == "spring"
@@ -430,7 +431,5 @@ func _refresh():
 		spring_spin.visible = spring_mode
 		_set_spin(spring_spin, PhysicsParams.spring[spring_key], Reveal.is_hidden(spring_key), not locked and not Reveal.is_hidden(spring_key))
 	_speed_name.text = "Spring k, Δx" if spring_mode else "Speed  v₀"
-	_launch_header.text = "Launch  (v₀ = %s m/s)" % Reveal.num(PhysicsParams.values["v0"], ["v0", "k", "pull", "m"]) if spring_mode else "Launch"
+	_launch_header.text = "v₀ = %s m/s" % Reveal.num(PhysicsParams.values["v0"], ["v0", "k", "pull", "m"]) if spring_mode else ""
 	_refreshing = false
-
-	_activate_button.disabled = not PhysicsParams.can_activate()

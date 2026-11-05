@@ -48,27 +48,27 @@ func run():
 			if type == "custom":
 				P.set_ability_on("theta", true)
 			var what := "%s bird, %s launch" % [type, mode]
-			for i in 4:
+			for i in 3:
 				main.show_topic(i)
 				await fits("%s, %s tab, waiting" % [what, main.topics[i].title])
 			main.launch()
 			while P.is_flying() and main.bird.flight_time < 0.4:
 				await process_frame
 			P.activate()
-			for i in 4:
+			for i in 3:
 				main.show_topic(i)
 				await fits("%s, %s tab, in flight" % [what, main.topics[i].title])
 			for f in 900:
 				if not P.is_flying(): break
 				await process_frame
 			await frames(30)
-			for i in 4:
+			for i in 3:
 				main.show_topic(i)
 				await fits("%s, %s tab, after the hit" % [what, main.topics[i].title])
 	P.set_launch_mode("speed")
 	P.set_bird_type("red")
 	# Every kind of practice problem: asked, answered wrong, solution shown.
-	main.show_topic(4)
+	main.show_topic(3)
 	await frames(2)
 	var panel = main.find_children("*", "PracticePanel", true, false)[0]
 	for item in panel._picker.item_count:
@@ -93,9 +93,9 @@ func run():
 	# The levels: each preset's task and settings in the Levels and Editor tabs.
 	for preset in load("res://levels/level_presets.gd").all():
 		main.load_level(preset)
-		main.show_topic(5)
+		main.show_topic(4)
 		await fits("level '%s', Levels tab" % preset["name"])
-		main.show_topic(6)
+		main.show_topic(5)
 		await fits("level '%s', Editor tab" % preset["name"])
 	main.show_topic(0)
 	ok("the dock always fit on the %d×%d screen (widest right edge %.0f px, lowest bottom %.0f px)" % [SCREEN.x, SCREEN.y, widest, tallest], widest <= SCREEN.x - 10.0 and tallest <= SCREEN.y)

@@ -302,7 +302,8 @@ func split_segments() -> Array[LaunchParams]:
 		var cos_sum := 0.0
 		for offset in offsets:
 			cos_sum += cos(deg_to_rad(offset))
-		speed *= count / cos_sum
+		if cos_sum > 0.01:   # 2 pieces at ±90° fly straight sideways: no speed can carry the forward momentum
+			speed *= count / cos_sum
 
 	var result: Array[LaunchParams] = []
 	for offset in offsets:

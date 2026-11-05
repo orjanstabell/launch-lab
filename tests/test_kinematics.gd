@@ -86,6 +86,21 @@ func _init():
 	level.burn_rate = 0.4
 	level.burn_time = 1.0
 	check_true("rocket lands at y = 0 (t = %.3f s)" % Kinematics.time_of_flight(level), absf(Kinematics.position(level, Kinematics.time_of_flight(level)).y) < 1e-3)
+	# The longest burn the panel allows (9 kg at 0.1 kg/s = 90 s): still exact, and fast
+	# enough to redo several times a frame (it used to take ~25 ms).
+	var slow := make(15.0, 45.0, 9.81, 5.0)
+	slow.m = 10.0
+	slow.thrust_dir = Vector2.from_angle(deg_to_rad(45.0))
+	slow.exhaust_speed = 200.0
+	slow.burn_rate = 0.1
+	slow.burn_time = 90.0
+	var started := Time.get_ticks_usec()
+	var slow_apex := Kinematics.time_to_apex(slow)
+	var slow_landing := Kinematics.time_of_flight(slow)
+	var took_ms := (Time.get_ticks_usec() - started) / 1000.0
+	check_true("long burn: vy = 0 at the apex (%.5f)" % Kinematics.velocity(slow, slow_apex).y, absf(Kinematics.velocity(slow, slow_apex).y) < 1e-3)
+	check_true("long burn: lands at y = 0 (t = %.3f s)" % slow_landing, absf(Kinematics.position(slow, slow_landing).y) < 1e-3)
+	check_true("long burn: apex + landing take %.1f ms (< 5 ms)" % took_ms, took_ms < 5.0)
 
 	if failures == 0:
 		print("All kinematics tests passed.")

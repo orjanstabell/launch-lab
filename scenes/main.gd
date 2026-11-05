@@ -6,8 +6,12 @@ extends Node2D
 ## Units.to_px() turns meters into positions directly.
 ##
 ## Screen layout (like a city builder's bottom bar): the sky is kept free, and
-## all the panels sit in a dock "under the ground". Formulas and explanations
-## only float over the sky when you switch them on (Formulas button, or D).
+## all the panels sit in a dock "under the ground", in three columns:
+##   the tabs (physics first, then the activities) and the shown tab's panel |
+##   the launch values and the bird |
+##   the big button (whatever Space does now), time and view, collisions, hiding values.
+## Formulas and explanations only float over the sky when you switch them on
+## (Formulas button, or D); H shows the keys. The look is in ui/ui_theme.gd.
 ##
 ## Pausing: this node and the UI keep running while paused (so keys and buttons
 ## still work), but `world` is set to pause, which freezes the bird and physics.
@@ -40,10 +44,16 @@ var level: Node2D   # blocks and pig, rebuilt on reset
 var slingshot: Slingshot
 var trails: Node2D   # this shot's trail(s): one per bird, more after a blue bird split
 var birds: Node2D   # this shot's bird(s)
-var topics: Array[Topic] = [MotionTopic.new(), ForcesTopic.new(), MomentumTopic.new(), EnergyTopic.new(), PracticeTopic.new(), LevelsTopic.new(), EditorTopic.new()]
+var topics: Array[Topic] = [MotionTopic.new(), ForcesTopic.new(), EnergyTopic.new(), PracticeTopic.new(), LevelsTopic.new(), EditorTopic.new()]
 var level_data: Dictionary = LevelPresets.tower()
 var editor: LevelEditor
-var banner: Label   # the level's name and task, over the sky
+var level_title: Label   # the level's name, over the sky...
+var banner: Label   # ...and its task, under the name
+var main_button: Button   # Launch, or the flying bird's ability: whatever Space does right now
+var _main_button_color := Color.TRANSPARENT   # what it's painted now (sliders refresh it many times a second)
+var help: Control   # the keys and the mouse, over the sky (H)
+var hint: Label   # how to start, until the first launch
+var launched_once := false
 var topic_buttons: Array[Button] = []
 var current_topic := 0
 var show_details := false   # formulas/explanations floating over the sky
@@ -56,8 +66,9 @@ var view_zoom := 1.0   # the camera's actual zoom, eased toward the target
 var dragging := false   # pulling the waiting bird back with the mouse
 var fit_target := 1.0   # the zoom Fit is easing toward
 var action_cam_enabled := false
-var action := {}   # while the action cam runs: {"bird", "pig", "saved_scale", "started", "hit_seen"}
+var action := {}   # while the action cam runs: {"bird", "pig", "running_ms", "last_tick", "hit_seen"}
 var action_overlay: ActionCamOverlay
+var sim_controls: SimControls
 
 
 func _ready():
@@ -78,12 +89,16 @@ func _ready():
 	PhysicsParams.details_requested.connect(set_show_details.bind(true))
 	PhysicsParams.bird_near_pig.connect(_on_bird_near_pig)
 	PhysicsParams.announced.connect(func(text): message.text = text)
+	PhysicsParams.values_changed.connect(_refresh_main_button)
+	PhysicsParams.flight_changed.connect(_refresh_main_button)
 	_apply_gravity_to_world()
+	_refresh_main_button()
 
 
 func _process(delta: float):
 	# The slingshot shows a waiting bird unless one is currently flying.
 	slingshot.loaded = not PhysicsParams.is_flying()
+	hint.visible = not launched_once and PhysicsParams.manual_launch_allowed and not editor.active and message.text == ""
 	_update_action_cam()
 	_update_camera(delta)
 
@@ -120,23 +135,21 @@ func _unhandled_input(event: InputEvent):
 		return
 	match event.keycode:
 		KEY_SPACE:
-			# Like tapping in Angry Birds: use the ability mid-air if the flying bird
-			# still has one, otherwise launch the next bird. (So a bird that's used its
-			# ability and is still far off-screen never blocks the next launch.)
-			if PhysicsParams.can_activate():
-				PhysicsParams.activate()
-			else:
-				player_launch()
+			space_action()
 		KEY_ENTER, KEY_KP_ENTER:
 			PhysicsParams.activate()
 		KEY_R:
 			reset_level()
 		KEY_D:
 			set_show_details(not show_details)
+		KEY_H, KEY_F1:
+			help.visible = not help.visible
 		KEY_F11:   # fullscreen, e.g. on a projector (and back)
 			set_fullscreen(not is_fullscreen())
 		KEY_ESCAPE:
-			if is_fullscreen():
+			if help.visible:
+				help.visible = false
+			elif is_fullscreen():
 				set_fullscreen(false)
 		var key when key >= KEY_1 and key < KEY_1 + topics.size():
 			show_topic(key - KEY_1)
@@ -173,14 +186,37 @@ func _update_drag(mouse: Vector2):
 	slingshot.drag_offset = -pull   # the bird sits behind the launch point, where you pulled it
 
 
-## Space or the Launch button. A practice problem can switch this off, so the
-## answer can't just be found by trying.
+## Space, or the big button. Like tapping in Angry Birds: use the ability mid-air
+## if the flying bird still has one, otherwise launch the next bird. (So a bird
+## that's used its ability and is still far off-screen never blocks the next launch.)
+func space_action():
+	if PhysicsParams.can_activate():
+		PhysicsParams.activate()
+	else:
+		player_launch()
+
+
+## Launching by hand (Space, the big button, dragging). A practice problem can
+## switch this off, so the answer can't just be found by trying.
 func player_launch():
 	if PhysicsParams.manual_launch_allowed and not editor.active:
 		launch()
 
 
+## The big button says what Space would do right now, in the colour of the bird it's for.
+func _refresh_main_button():
+	var ability := PhysicsParams.can_activate()
+	var type: String = PhysicsParams.bird.type if ability else PhysicsParams.bird_type
+	var info: Dictionary = BirdTypes.TYPES[type]
+	main_button.text = "%s (Space)" % (info.get("action", "Activate") if ability else "Launch")
+	main_button.disabled = not ability and not (PhysicsParams.manual_launch_allowed and not editor.active)
+	if info["color"] != _main_button_color:
+		_main_button_color = info["color"]
+		UiTheme.paint(main_button, _main_button_color)
+
+
 func launch():
+	launched_once = true
 	_clear_shot()
 	var trail := Trail.new()
 	trails.add_child(trail)
@@ -231,17 +267,18 @@ func load_level(data: Dictionary):
 
 
 func update_banner():
-	if not PhysicsParams.show_level:   # practice problems use an empty world: no level task
-		banner.text = ""
-		return
 	var task: String = level_data.get("description", "")
-	banner.text = "%s\n%s" % [level_data.get("name", ""), task] if task != "" else ""
+	if not PhysicsParams.show_level:   # practice problems use an empty world: no level task
+		task = ""
+	banner.text = task
+	level_title.text = level_data.get("name", "") if task != "" else ""
 
 
 ## Start or stop editing the level. Stopping rebuilds it with live physics.
 func set_editing(on: bool):
 	editor.active = on
 	reset_level()
+	_refresh_main_button()
 
 
 ## Removes the last shot's bird(s) and trail(s) (and ends the action cam).
@@ -269,7 +306,7 @@ func set_zoom(zoom_level: float):
 func _on_bird_near_pig(near_bird: Bird, pig: Pig):
 	if not action_cam_enabled or not action.is_empty() or near_bird != bird:
 		return
-	action = {"bird": near_bird, "pig": pig, "pig_at": pig.position, "saved_scale": Engine.time_scale, "started": Time.get_ticks_msec(), "hit_seen": -1}
+	action = {"bird": near_bird, "pig": pig, "pig_at": pig.position, "running_ms": 0, "last_tick": Time.get_ticks_msec(), "hit_seen": -1}
 	Engine.time_scale = ACTION_SLOW
 	for topic in topics:   # the topic's own arrows would clutter the close-up
 		for overlay in topic.overlays:
@@ -280,23 +317,28 @@ func _on_bird_near_pig(near_bird: Bird, pig: Pig):
 
 
 ## Ends the action cam a moment (real time) after the hit, or if nothing happens.
+## Paused, the close-up waits for you: only real time while running counts.
 func _update_action_cam():
 	if action.is_empty():
 		return
-	var now := Time.get_ticks_msec()
+	var tick := Time.get_ticks_msec()
+	if not get_tree().paused:
+		action["running_ms"] += tick - action["last_tick"]
+	action["last_tick"] = tick
+	var now: int = action["running_ms"]
 	if is_instance_valid(action["pig"]):
 		action["pig_at"] = action["pig"].position
 	if action["hit_seen"] < 0 and (not is_instance_valid(action["bird"]) or action["bird"].state != Bird.State.FLYING):
 		action["hit_seen"] = now
 	var done_after_hit: bool = action["hit_seen"] >= 0 and now - action["hit_seen"] > ACTION_AFTER_HIT_MS
-	if done_after_hit or now - action["started"] > ACTION_MAX_MS:
+	if done_after_hit or now > ACTION_MAX_MS:
 		_end_action_cam()
 
 
 func _end_action_cam():
 	if action.is_empty():
 		return
-	Engine.time_scale = action["saved_scale"]
+	Engine.time_scale = sim_controls.speed()   # the slow motion the button shows, even if S was pressed mid-action
 	action = {}
 	action_overlay.visible = false
 	show_topic(current_topic)   # brings the topic's overlays back
@@ -450,7 +492,7 @@ func _build_ui():
 	var root := Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	root.theme = _make_theme()
+	root.theme = UiTheme.make()
 	layer.add_child(root)
 
 	# Formulas/explanations: float over the top-left of the sky, only when switched on.
@@ -460,7 +502,7 @@ func _build_ui():
 
 	# The dock: a strip under the ground with three columns.
 	var dock := PanelContainer.new()
-	dock.add_theme_stylebox_override("panel", _make_dock_style())
+	dock.add_theme_stylebox_override("panel", UiTheme.dock())
 	dock.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	dock.offset_top = -DOCK_HEIGHT
 	root.add_child(dock)
@@ -469,7 +511,8 @@ func _build_ui():
 	columns.add_theme_constant_override("separation", 14)
 	dock.add_child(columns)
 
-	# Column 1: topic tabs (+ the Formulas toggle), with the topic's compact panel.
+	# Column 1: the tabs, with the shown tab's panel under them. The physics tabs
+	# come first; a divider, then the activities (Practice, Levels, Editor).
 	var topic_column := VBoxContainer.new()
 	topic_column.add_theme_constant_override("separation", 6)
 	columns.add_child(topic_column)
@@ -478,6 +521,8 @@ func _build_ui():
 	topic_column.add_child(tabs)
 	var tab_group := ButtonGroup.new()
 	for i in topics.size():
+		if topics[i] is PracticeTopic:
+			tabs.add_child(VSeparator.new())
 		var button := _make_toggle(topics[i].title, "%s (key %d)" % [topics[i].title, i + 1])
 		button.add_theme_font_size_override("font_size", 16)
 		button.button_group = tab_group
@@ -485,46 +530,81 @@ func _build_ui():
 		tabs.add_child(button)
 		topic_buttons.append(button)
 		topic_column.add_child(topics[i].panel)
-	details_button = _make_toggle("Formulas", "Show the formulas and explanations over the sky (D)")
-	details_button.add_theme_font_size_override("font_size", 16)
-	details_button.toggled.connect(set_show_details)
-	tabs.add_child(details_button)
 
-	# Column 2: parameters and bird.
-	var param_panel := ParamPanel.new()
-	param_panel.launch_requested.connect(player_launch)
-	columns.add_child(param_panel)
+	# Column 2: launch values and the bird.
+	columns.add_child(ParamPanel.new())
 
-	# Column 3: simulation controls and hiding values.
+	# Column 3: the big button, then time and view, then the world's settings.
 	var control_column := VBoxContainer.new()
 	control_column.add_theme_constant_override("separation", 6)
+	control_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL   # the room that's left: the hide summary needs it
 	columns.add_child(control_column)
-	var sim_controls := SimControls.new()
+	main_button = Button.new()
+	main_button.custom_minimum_size = Vector2(0, 50)
+	main_button.focus_mode = Control.FOCUS_NONE   # (Space is its key)
+	main_button.tooltip_text = "Launch the next bird; in the air, use its ability (Space)"
+	main_button.add_theme_font_override("font", UiTheme.bold())
+	main_button.add_theme_font_size_override("font_size", 22)
+	main_button.pressed.connect(space_action)
+	control_column.add_child(main_button)
+	sim_controls = SimControls.new()
 	sim_controls.zoom_changed.connect(set_zoom)
 	sim_controls.action_cam_changed.connect(set_action_cam)
 	control_column.add_child(sim_controls)
-	control_column.add_child(HidePanel.new())
+	details_button = sim_controls.details_button
+	details_button.toggled.connect(set_show_details)
+	var world_panel := PanelContainer.new()
+	control_column.add_child(world_panel)
+	var world_rows := VBoxContainer.new()
+	world_rows.add_theme_constant_override("separation", 6)
+	world_panel.add_child(world_rows)
+	world_rows.add_child(ElasticityRow.new())
+	var hide_row := HBoxContainer.new()
+	hide_row.add_theme_constant_override("separation", 10)
+	world_rows.add_child(hide_row)
+	var hide_panel := HidePanel.new()
+	hide_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hide_row.add_child(hide_panel)
+	var help_button := Button.new()
+	help_button.text = "Help (H)"
+	help_button.tooltip_text = "The keys and the mouse (H)"
+	help_button.focus_mode = Control.FOCUS_NONE
+	help_button.custom_minimum_size = Vector2(0, 34)
+	help_button.pressed.connect(func(): help.visible = not help.visible)
+	hide_row.add_child(help_button)
 
-	message = Label.new()
-	message.add_theme_font_size_override("font_size", 40)
-	message.add_theme_color_override("font_outline_color", Color.BLACK)
-	message.add_theme_constant_override("outline_size", 8)
+	message = _sky_label(40, 8)
 	message.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	message.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	message.position.y = 30
+	message.position.y = 96   # under the level's name and task (top right), which a long task can stretch
 	root.add_child(message)
 
-	banner = Label.new()
-	banner.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	banner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	banner.offset_right = -20
-	banner.offset_top = 16
+	hint = _sky_label(22, 6)
+	hint.text = "Drag the bird to aim  ·  Space to launch  ·  H for help"
+	hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	hint.position.y = 104
+	root.add_child(hint)
+
+	# The level's name and task, top right: the name big, so the goal reads first.
+	var banner_box := VBoxContainer.new()
+	banner_box.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	banner_box.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	banner_box.offset_right = -20
+	banner_box.offset_top = 12
+	banner_box.add_theme_constant_override("separation", 0)
+	root.add_child(banner_box)
+	level_title = _sky_label(30, 7)
+	level_title.add_theme_font_override("font", UiTheme.bold())
+	level_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	banner_box.add_child(level_title)
+	banner = _sky_label(21, 6)
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	banner.add_theme_font_size_override("font_size", 20)
-	banner.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
-	banner.add_theme_constant_override("outline_size", 6)
-	root.add_child(banner)
+	banner_box.add_child(banner)
 	update_banner()
+
+	help = _make_help()
+	root.add_child(help)
 
 
 func _make_toggle(text: String, tooltip: String) -> Button:
@@ -534,29 +614,66 @@ func _make_toggle(text: String, tooltip: String) -> Button:
 	button.toggle_mode = true
 	button.custom_minimum_size = Vector2(0, 34)
 	button.focus_mode = Control.FOCUS_NONE
-	button.add_theme_color_override("font_pressed_color", Color(1.0, 0.85, 0.2))
 	return button
 
 
-func _make_theme() -> Theme:
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.1, 0.12, 0.16, 0.9)
-	panel_style.set_corner_radius_all(8)
-	panel_style.set_content_margin_all(12)
-
-	# Not every computer (and no browser) has a font with ✓, ✗, ★… to borrow from.
-	ThemeDB.fallback_font.fallbacks = [LiveLabel.MONO_FONT]
-	var theme := Theme.new()
-	theme.default_font_size = 18
-	theme.set_stylebox("panel", "PanelContainer", panel_style)
-	return theme
+## White text with a dark outline, readable on the sky (and on the arrows under it).
+func _sky_label(font_size: int, outline: int) -> Label:
+	var label := Label.new()
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", Color.WHITE)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	label.add_theme_constant_override("outline_size", outline)
+	return label
 
 
-## Dark earth, so the dock reads as "under the ground".
-func _make_dock_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.2, 0.14, 0.09)
-	style.border_color = Color(0.13, 0.09, 0.05)
-	style.border_width_top = 4
-	style.set_content_margin_all(10)
-	return style
+## The keys and the mouse, shown over the sky with H (or the Help button):
+## the one place that doesn't need hovering, so the class can see it too.
+func _make_help() -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.visible = false
+	panel.anchor_left = 0.5
+	panel.anchor_right = 0.5
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.offset_top = 100   # under the level's name and task
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	panel.add_child(box)
+	var title := Label.new()
+	title.text = "Keys and mouse"
+	title.add_theme_font_override("font", UiTheme.bold())
+	title.add_theme_font_size_override("font_size", 26)
+	box.add_child(title)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 28)
+	grid.add_theme_constant_override("v_separation", 6)
+	box.add_child(grid)
+	for row in [
+		["Drag the bird", "aim and pull back; let go to launch"],
+		["Space", "launch; in the air, use the bird's ability"],
+		["R", "reset the level"],
+		["P  /  F", "pause  /  one physics step while paused"],
+		["S", "slow motion: 1×, 0.5×, 0.25×, 0.1×"],
+		["Z", "zoom: fit the arc, or follow the bird at 2× / 3×"],
+		["C", "action cam near a pig: forces, velocities, momentum, off"],
+		["D", "formulas and explanations over the sky"],
+		["1 – %d" % topics.size(), "tabs"],
+		["Right-click", "move the target for Solve (Motion tab)"],
+		["F11  /  Esc", "fullscreen on / off"],
+		["H", "show / hide this"],
+	]:
+		var key := Label.new()
+		key.text = row[0]
+		key.add_theme_font_override("font", UiTheme.bold())
+		key.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		grid.add_child(key)
+		var what := Label.new()
+		what.text = row[1]
+		grid.add_child(what)
+	var dock_guide := Label.new()
+	dock_guide.text = "The dock:  left, what the tab shows  ·  middle, the launch and the bird  ·  right, run and view.\nHover over any control for more; D shows the formulas behind what's on screen."
+	dock_guide.add_theme_color_override("font_color", UiTheme.TEXT_DIM)
+	dock_guide.add_theme_font_size_override("font_size", 16)
+	box.add_child(dock_guide)
+	return panel

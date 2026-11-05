@@ -30,7 +30,7 @@ func attempt(panel, w, energy):
 	return egg_vx
 func run():
 	await frames(10)
-	main.show_topic(4)
+	main.show_topic(3)
 	var panel = main.find_children("*", "PracticePanel", true, false)[0]
 	for i in panel._picker.item_count:
 		if "drop the egg straight down" in panel._picker.get_item_text(i): panel._picker.select(i)

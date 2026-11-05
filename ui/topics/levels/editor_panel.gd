@@ -28,7 +28,6 @@ func _ready():
 		button.toggle_mode = true
 		button.button_group = group
 		button.button_pressed = piece == "box"
-		button.add_theme_color_override("font_pressed_color", Color(1.0, 0.85, 0.2))
 	_add_button(row, "Clear", _clear, "Remove every piece")
 
 	row = _add_row()

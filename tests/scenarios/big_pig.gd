@@ -41,7 +41,7 @@ func run():
 	await shoot_big(0.0)
 	ok("second hit finishes it", big_pig() == null)
 	# heavy pig: set mass through the Levels tab
-	var panel = main.topics[6].editor_panel
+	var panel = main.topics[5].editor_panel
 	panel._big_pig_mass.value = 40.0
 	print("      level_data pigs after setting: %s   status: %s" % [main.level_data["pigs"], panel._status.text])
 	await frames(60)

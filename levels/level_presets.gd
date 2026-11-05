@@ -12,7 +12,7 @@ static func all() -> Array[Dictionary]:
 static func tower() -> Dictionary:
 	var level := Level.blank("Tower")
 	level["description"] = "Knock the pig off its tower, then take on the big pig (it survives one hit)."
-	_tower(level, 25.0)
+	add_tower(level, 25.0)
 	Level.add_pig(level, Vector2(29.5, Pig.BIG_RADIUS_M), true)
 	return level
 
@@ -40,7 +40,7 @@ static func hidden_gravity() -> Dictionary:
 	level["launch"] = {"v0": 14.0, "theta": 45.0, "y0": 0.0, "m": 1.0}
 	level["hidden"] = ["g", "predict"]
 	level["randomize_hidden"] = true
-	_tower(level, 24.0)
+	add_tower(level, 24.0)
 	return level
 
 
@@ -72,7 +72,7 @@ static func egg_drop() -> Dictionary:
 	Level.add_block(level, Vector2(0.4, 3.0), Vector2(21.0, 1.5))
 	Level.add_block(level, Vector2(0.4, 3.0), Vector2(26.0, 1.5))
 	Level.add_pig(level, Vector2(23.5, 0.4))
-	level["topic"] = 2
+	level["topic"] = 1   # Forces & momentum
 	return level
 
 
@@ -82,7 +82,7 @@ static func heavy_spring() -> Dictionary:
 	level["launch"] = {"g": 9.81, "theta": 40.0, "y0": 1.0, "m": 3.0}
 	level["launch_mode"] = "spring"
 	level["spring"] = {"k": 800.0, "pull": 0.6}
-	_tower(level, 26.0)
+	add_tower(level, 26.0)
 	return level
 
 
@@ -99,7 +99,7 @@ static func yellow_straight() -> Dictionary:
 
 
 ## Two posts and a plank, with the pig on top (the plank's top is at 1.9 m).
-static func _tower(level: Dictionary, x: float):
+static func add_tower(level: Dictionary, x: float):
 	Level.add_block(level, Vector2(0.3, 1.6), Vector2(x - 1.0, 0.8))
 	Level.add_block(level, Vector2(0.3, 1.6), Vector2(x + 1.0, 0.8))
 	Level.add_block(level, Vector2(2.8, 0.3), Vector2(x, 1.75))

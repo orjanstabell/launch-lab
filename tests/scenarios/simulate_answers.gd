@@ -68,7 +68,7 @@ func attempt(panel, answers: Array) -> Dictionary:
 func run():
 	await frames(10)
 	Engine.time_scale = 3.0   # the flights are formulas: a faster clock doesn't change them
-	main.show_topic(4)
+	main.show_topic(3)
 	var panel = main.find_children("*", "PracticePanel", true, false)[0]
 	for item in panel._picker.item_count:
 		var kind = panel._picker.get_item_metadata(item)

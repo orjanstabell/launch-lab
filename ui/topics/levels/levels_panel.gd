@@ -3,8 +3,8 @@ extends VBoxContainer
 ## The Levels tab: pick a level and play it.
 ##   ★ levels are built in; the others are levels you saved (in the Editor tab).
 ##   Click one to read its task, double-click (or Load) to play it.
-##   Delete removes a saved level; Import… adds a level .json file (e.g. one
-##   handed out for a class).
+##   Delete removes a saved level (a second click confirms); Import… adds a level .json file (e.g. one
+##   handed out for a class). Random plays a new random level (LevelGenerator).
 
 var main: Node   # set by main: loads levels
 
@@ -13,6 +13,7 @@ var _about: Label
 var _status: Label
 var _levels: Array[Dictionary] = []   # what each list row loads: {"level", "saved"}
 var _on_uploaded: JavaScriptObject   # kept here so the browser's callback stays alive
+var _delete_armed := ""   # the saved level a first click on Delete picked: a second click deletes it
 
 
 func _ready():
@@ -36,11 +37,17 @@ func _ready():
 	row.add_theme_constant_override("separation", 6)
 	add_child(row)
 	_add_button(row, "Load", _load_selected, "Play this level (double-click works too)")
-	_add_button(row, "Delete", _delete_selected, "Delete this saved level (★ levels are built in)")
 	_add_button(row, "Import…", _import, "Add a level .json file to your levels")
+	_add_button(row, "Random", _play_random, "Play a new random level (to keep it, Save it in the Editor tab)")
 	_status = Label.new()
 	_status.modulate = Color(1, 1, 1, 0.6)
+	_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	row.add_child(_status)
+	# Away from Load, and red: it can't be undone.
+	var delete := _add_button(row, "Delete", _delete_selected, "Delete this saved level (★ levels are built in). Click twice: it can't be undone.")
+	delete.add_theme_color_override("font_color", Color(1.0, 0.55, 0.5))
+	delete.add_theme_color_override("font_hover_color", Color(1.0, 0.65, 0.6))
 
 	visibility_changed.connect(_on_visibility_changed)
 	refresh()
@@ -71,6 +78,7 @@ func refresh(select_name := ""):
 
 
 func _on_selected(index: int):
+	_delete_armed = ""
 	if index < 0:
 		_about.text = "Pick a level to read its task."
 		return
@@ -92,14 +100,25 @@ func _load_selected():
 	_status.text = "Playing \"%s\"." % choice["level"]["name"]
 
 
+func _play_random():
+	var level := LevelGenerator.generate(randi())
+	main.load_level(level)
+	_status.text = "Playing \"%s\"." % level["name"]
+
+
 func _delete_selected():
 	var choice := _selected()
 	if choice.is_empty() or not choice["saved"]:
 		_status.text = "Only your own saved levels can be deleted."
 		return
-	LevelStore.delete(choice["level"]["name"])
-	_status.text = "Deleted \"%s\"." % choice["level"]["name"]
-	refresh()
+	var level_name: String = choice["level"]["name"]
+	if _delete_armed != level_name:   # it's gone for good (no undo), so the first click only asks
+		_delete_armed = level_name
+		_status.text = "Click Delete again to delete \"%s\" for good." % level_name
+		return
+	LevelStore.delete(level_name)
+	refresh()   # (disarms Delete)
+	_status.text = "Deleted \"%s\"." % level_name
 
 
 func _import():

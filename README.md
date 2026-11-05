@@ -31,6 +31,7 @@ This copy of the project also runs in a browser. The ready-built game is in
 `docs/` (`index.html` plus the engine, about 40 MB; browsers cache it after the
 first visit).
 
+- **Play it online:** <https://orjanstabell.github.io/launch-lab/>
 - **Try it locally:** `python3 -m http.server -d docs 8000`, then open
   <http://localhost:8000>. Opening `index.html` directly from disk won't work.
 - **Publish it on GitHub Pages:** push this repo to GitHub, then go to
@@ -63,11 +64,15 @@ Differences from the desktop version:
 | **Z** | Zoom: fit the whole arc, or follow the bird at 2× / 3× |
 | **C** | Action cam: zoom in and slow down when a bird nears a pig (cycles forces, velocities, momentum, off) |
 | **D** | Show the formulas and explanations over the sky |
-| **1**–**7** | Tabs: Motion, Forces, Momentum, Energy, Practice, Levels, Editor |
+| **1**–**6** | Tabs: Motion, Forces & momentum, Energy, then Practice, Levels, Editor |
+| **H** / **F1** | The keys and the mouse, over the sky (or the *Help* button) |
 | Right-click | Move the target for solve mode |
 | **F11** / **Esc** | Fullscreen on / off |
 
-Every button and setting has a tooltip.
+The big button in the right-hand column always does what **Space** would do
+right now (*Launch*, *Split*, *Fire rocket*, ...), in the colour of that bird. The
+other buttons show their key, e.g. *Pause (P)*, so the class can see what you
+pressed. Every button and setting also has a tooltip.
 
 ## Ideas for a lecture
 
@@ -77,27 +82,28 @@ the numbers.
 | Idea | How to show it |
 |---|---|
 | The formula is the truth | **Motion**, press **D**. Launch, pause, and check `t`, `x`, `y` against `x(t)` and `y(t)` with the numbers filled in. |
-| Mass cancels | **Forces**. Raise `m` from 1 to 5 kg: the force arrow grows, the acceleration stays `g`, the path doesn't move. |
+| Mass cancels | **Forces & momentum**. Raise `m` from 1 to 5 kg: the force arrow grows, the acceleration stays `g`, the path doesn't move. |
 | Two angles, one range | Level **Same range, two angles**, or **Solve for θ** in **Motion** (tick *high arc*). |
 | Energy is conserved | **Energy**. Launch: KE turns into PE and back, the total line stays flat until the crash. |
-| Explosions conserve momentum | **Blue** bird, **Momentum**. Split mid-air: the pieces' centre of mass stays on the old arc. Untick *Conserve momentum* to see what the real game does instead. |
-| The rocket equation | **Rocket** bird, **Momentum**, press **D**: Δv = v_e·ln(m₀/m₁), and bird + exhaust together keep the momentum the bird alone would have had. |
-| Recoil | **Matilda**, **Momentum**: throwing the egg down kicks her up by (m_egg/m)·u. |
+| Explosions conserve momentum | **Blue** bird, **Forces & momentum**. Split mid-air: the pieces' centre of mass stays on the old arc. Untick *Conserve momentum* to see what the real game does instead. |
+| The rocket equation | **Rocket** bird, **Forces & momentum**, press **D**: Δv = v_e·ln(m₀/m₁), and bird + exhaust together keep the momentum the bird alone would have had. |
+| Recoil | **Matilda**, **Forces & momentum**: throwing the egg down kicks her up by (m_egg/m)·u. |
 | Newton's 3rd law in a collision | Action cam (**C**) on *forces*, or the *Last hit* arrows: the pushes on bird and pig are equal and opposite. |
 | Mass matters at launch | Press *Spring launch*: v₀ = Δx·√(k/m), so a heavier bird leaves the same spring slower. |
-| Measure g on another planet | Hide `g` (right-hand panel), press *Randomize*, then measure the range against the rulers. Or Practice → *Mystery planet*. |
+| Measure g on another planet | *Hide values…* → `g` (right-hand column), press *Randomize*, then measure the range against the rulers. Or Practice → *Mystery planet*. |
 | Let the class predict | **Practice**: pick a problem, let the students vote, then *Check* flies the shot with their answer next to what really happens. |
 
 ## Hiding values
 
-The *Hide values* panel hides any quantity everywhere it appears (shown as `?`),
+*Hide values…* (right-hand column) opens a toggle per quantity; next to the
+button, the dock lists what is hidden. A hidden quantity shows as `?` everywhere,
 including numbers that would give it away: hiding `g` also hides `½·g` in
 `y(t)`. *Predictions* hides the dotted path and the landing point, so students
 can guess first. *Randomize* gives hidden launch values random numbers.
 
 ## Levels and sharing
 
-The **Levels** tab plays the built-in levels (★) and your own. The **Editor**
+The **Levels** tab plays the built-in levels (★) and your own. *Random* builds a new level from small stable pieces (towers, pillars, walls, a pit), always with a clear shot to every pig. The **Editor**
 tab builds the loaded level: click to place a piece, drag to move it,
 right-click to delete it. *Save* also stores the current settings (launch
 values, bird, hidden values, opening tab), so a saved level reproduces the
@@ -133,7 +139,8 @@ autoload/reveal.gd        hiding values: every number on screen is formatted her
 scenes/bird.gd            follows kinematics.gd while flying; abilities; the hand-over
                           to the physics engine on the first hit
 scenes/bird_art.gd        how every bird looks (also drawn on the slingshot)
-ui/topics/                one folder per tab: its dock panel, formulas and overlays
+ui/ui_theme.gd            how the dock looks: colours, buttons, the lit "on" state
+ui/topics/                one folder per tab topic: its dock panel, formulas and overlays
 practice/problems/        one file per kind of practice problem
 levels/                   level format, built-in levels, saving and loading
 tests/                    headless tests (see below)

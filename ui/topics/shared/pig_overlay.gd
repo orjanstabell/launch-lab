@@ -9,9 +9,11 @@ extends Node2D
 ##            the two arrows cancel (no acceleration). In a hit it's huge.
 ##            A hit lasts about one physics step, so the biggest push stays on
 ##            screen for a moment as a faded "hit" arrow.
+##   The force arrows grow with log(F) (DrawUtil.log_arrow_length), like the
+##   action cam's: a hit fits on screen, and a resting pig's arrows stay short
+##   enough to end above the dock instead of under it.
 ## "velocity": its velocity v, while it moves.
 
-const PX_PER_NEWTON := 5.0   # shorter than the bird's: a pig sits near the ground
 const PX_PER_MPS := 20.0   # the same as the bird's (VelocityOverlay)
 const MAX_ARROW := 350.0   # px at 1×; longer arrows are shortened (the labels keep the true value)
 const GRAVITY_COLOR := Color(0.75, 0.45, 1.0)
@@ -68,15 +70,15 @@ func _draw():
 		var weight := Vector2(0, -pig.mass * PhysicsParams.world_gravity())
 		var left := pig.position + Vector2(-8, 0) * k
 		var right := pig.position + Vector2(8, 0) * k
-		_arrow(left, weight * PX_PER_NEWTON, Color(GRAVITY_COLOR, fade), "", k)
+		_arrow(left, _log_scaled(weight), Color(GRAVITY_COLOR, fade), "", k)
 		DrawUtil.label(self, left, Vector2(-16, 4), "gravity %s N" % Reveal.num(weight.length(), ["F"], 1), Color(GRAVITY_COLOR, fade), true)   # beside the pig, not under the ground
 		var hit: Dictionary = _hits.get(pig, {})
 		if not hit.is_empty() and hit["age"] < HIT_SHOWN_FOR:
 			var faded: float = fade * (1.0 - hit["age"] / HIT_SHOWN_FOR)
-			_arrow(right, hit["force"] * PX_PER_NEWTON, Color(CONTACT_COLOR, 0.5 * faded), "hit: %s N" % Reveal.num(hit["force"].length(), ["F"], 0), k)
+			_arrow(right, _log_scaled(hit["force"]), Color(CONTACT_COLOR, 0.5 * faded), "hit: %s N" % Reveal.num(hit["force"].length(), ["F"], 0), k)
 		var contact: Vector2 = _contact.get(pig, pig.contact_force)
 		if contact.length() > 0.3:
-			_arrow(right, contact * PX_PER_NEWTON, Color(CONTACT_COLOR, fade), "contact %s N" % Reveal.num(contact.length(), ["F"], 1), k)
+			_arrow(right, _log_scaled(contact), Color(CONTACT_COLOR, fade), "contact %s N" % Reveal.num(contact.length(), ["F"], 1), k)
 
 
 ## `amount` in px at 1× (y up); shortened to MAX_ARROW.
@@ -86,3 +88,8 @@ func _arrow(from: Vector2, amount: Vector2, color: Color, text: String, k: float
 	DrawUtil.arrow(self, from, tip, color)
 	if text != "":
 		DrawUtil.label(self, tip, Vector2(8, 4), text, color)
+
+
+## A force (N) as an arrow in px at 1×, on the log scale.
+func _log_scaled(force: Vector2) -> Vector2:
+	return force.normalized() * DrawUtil.log_arrow_length(force.length())

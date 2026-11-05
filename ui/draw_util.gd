@@ -51,3 +51,10 @@ static func arrow(canvas: CanvasItem, from: Vector2, to: Vector2, color: Color):
 	var side := dir.orthogonal() * 7.0 * k
 	var back := to - dir * 12.0 * k
 	canvas.draw_colored_polygon(PackedVector2Array([to + dir * 4.0 * k, back + side, back - side]), color)
+
+
+## Arrow length (px at 1×) for a force that can be anything from a pig's weight to
+## a hit thousands of times bigger: it grows with log₁₀(1 + F), so 10 N and 3000 N
+## both fit, and two equal forces still get equal arrows. The labels give the true value.
+static func log_arrow_length(newtons: float) -> float:
+	return 40.0 * log(1.0 + newtons) / log(10.0)

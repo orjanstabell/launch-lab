@@ -346,6 +346,28 @@ your number becomes something you can see next to what really happens:
 - Open question: the "Yellow bird: when to tap" problem and the "Yellow bird: straight shot" level fly the purple
   Custom bird with g → 0, while the Yellow bird itself is the speed boost. Rename them, or give them the yellow bird?
 
+## Changed 2026-11-05: UI/UX redesign of the dock
+
+- **Forces and Momentum are one tab, "Forces & momentum"** (they're one story: F changes p by Δp = F·Δt).
+  The dock shows F, a and p together plus that link; each overlay exists once ("Last hit" was in both tabs
+  with separate checkboxes). Tabs are now 1 Motion, 2 Forces & momentum, 3 Energy | 4 Practice, 5 Levels,
+  6 Editor (a divider between the physics tabs and the activities); this supersedes the Topics list above.
+  Level files are version 2; `Level.migrate()` moves a version 1 file's opening tab (tested).
+- **One big button** in the right-hand column does what Space does right now (Launch / Boost / Split /
+  Fire rocket / Drop egg), in the bird's colour; the Launch and Activate buttons are gone.
+- **Less on screen**: Hide values is one button that opens the grid (the dock lists what's hidden); the
+  On activate column only appears for the yellow and custom birds; "Rocket exhaust" only for the rocket.
+  Elasticity moved next to the simulation controls (it changes the world in every tab). Formulas (D) is a
+  sim button instead of looking like an 8th tab.
+- **Help without hovering**: keys printed on the buttons ("Pause (P)"), H / Help shows every key and the
+  mouse over the sky, and a first-launch hint ("Drag the bird to aim · Space to launch · H for help").
+- **Look** (`ui/ui_theme.gd`): a calm, flat, dark instrument panel; anything selected or on is lit (light
+  fill, dark text) instead of yellow, which now only means "ability"; text contrast ≥ 7:1 for projectors;
+  bird buttons get a colour dot; visible empty checkboxes; Delete sits apart from Load, in red.
+- World: pig force arrows use the action cam's log scale (the big pig's gravity arrow no longer ends under
+  the dock); the split's "center of mass" / "unsplit bird" labels moved behind the marker; the level's
+  name is big and its task under it.
+
 ## Possible next steps (not started)
 
 - Class mode: a level that opens straight into a practice problem; limit attempts or hide Show solution; a score.

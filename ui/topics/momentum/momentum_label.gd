@@ -126,12 +126,11 @@ func _compact_lines(bird: Bird) -> Array:
 	var p_from := ["p", "m", "v"]
 	if not is_instance_valid(bird):
 		var p := PhysicsParams.launch_params()
-		return ["p = m·v   (kg·m/s)", "Next launch:  p = %s" % _n(p.m * p.v0, ["p", "m", "v0"])]
+		return ["Next launch:  p = m·v₀ = %s kg·m/s" % _n(p.m * p.v0, ["p", "m", "v0"])]
 	if bird.pieces.is_empty():
 		var p: Vector2 = bird.mass_now() * bird.velocity_m()
 		var result := [
-			"p = m·v   (kg·m/s)",
-			"px = %s   py = %s   |p| = %s" % [Reveal.live(p.x, ["p", "m", "vx"]), Reveal.live(p.y, ["p", "m", "vy"]), Reveal.live(p.length(), p_from)],
+			"p = m·v:  px = %s  py = %s  |p| = %s kg·m/s" % [Reveal.live(p.x, ["p", "m", "vx"]), Reveal.live(p.y, ["p", "m", "vy"]), Reveal.live(p.length(), p_from)],
 		]
 		var hit := _last_hit(bird)
 		if not hit.is_empty():
@@ -139,6 +138,8 @@ func _compact_lines(bird: Bird) -> Array:
 			var after: Vector2 = hit["bird_m"] * hit["bird_after"] + hit["other_m"] * hit["other_after"]
 			result.append("Hit the %s: Σp (%s, %s) → (%s, %s)" % [hit["other_name"], _n(before.x, p_from), _n(before.y, p_from), _n(after.x, p_from), _n(after.y, p_from)])
 			result.append("  conserved ✓" if _hit_conserved(hit) else "  changed: something else pushed too")
+		elif bird.state == Bird.State.FLYING and not bird.burning():   # only gravity pushes: the link between the two halves of this tab
+			result.append("Δp = F·Δt: px stays, py drops %s kg·m/s every second" % _n(bird.mass_now() * bird.segment.g, ["F", "m", "g"]))
 		return result
 	var info := bird.split_info
 	var p_before: Vector2 = info["p_before"]
