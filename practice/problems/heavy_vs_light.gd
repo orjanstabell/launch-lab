@@ -7,7 +7,7 @@ var range_1 := 0.0
 
 func _init():
 	topic = "Energy"
-	title = "Spring slingshot: heavy vs light bird"
+	title = "Spring slingshot: heavy vs light ball"
 	answers = [{"label": "new range", "unit": "m", "min": 0.0, "max": 200.0, "step": 0.01}]
 	hidden_keys = ["predict", "v0", "E", "x"]
 
@@ -24,7 +24,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "With this spring and pull, a %s kg bird launched from the ground lands %s m away.\nSame spring, same pull, same angle: where does a %s kg bird land?" % [n(launch["m"]), n(range_1), n(mass_2)]
+	return "With this spring and pull, a %s kg ball launched from the ground lands %s m away.\nSame spring, same pull, same angle: where does a %s kg ball land?" % [n(launch["m"]), n(range_1), n(mass_2)]
 
 
 func solution_steps() -> Array[String]:
@@ -48,7 +48,7 @@ func markers(given: Array[float]) -> Array[Dictionary]:
 
 ## The first bird flies next to the new one.
 func ghosts(_given: Array[float]) -> Array[Dictionary]:
-	return [ghost(launch_with(), "the %s kg bird" % n(launch["m"], 1))]
+	return [ghost(launch_with(), "the %s kg ball" % n(launch["m"], 1))]
 
 
 func outcome(given: Array[float]) -> String:

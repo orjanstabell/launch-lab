@@ -4,7 +4,7 @@ extends Problem
 
 func _init():
 	topic = "Momentum"
-	title = "Rocket bird: Δv from the rocket equation"
+	title = "Rocket: Δv from the rocket equation"
 	bird_type = "rocket"
 	answers = [{"label": "Δv", "unit": "m/s", "min": 0.0, "max": 500.0, "step": 0.01}]
 	hidden_keys = ["v", "p"]
@@ -26,13 +26,13 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "A rocket bird of %s kg (fuel included) burns %s kg of fuel, with exhaust speed v_e = %s m/s.\nHow much speed does it gain (ignore gravity during the burn)?\n(Check fires it at the top of its arc, next to a ghost rocket that gains your Δv.)" % [n(launch["m"]), n(fuel), n(exhaust)]
+	return "A Rocket of %s kg (fuel included) burns %s kg of fuel, with exhaust speed v_e = %s m/s.\nHow much speed does it gain (ignore gravity during the burn)?\n(Check fires it at the top of its arc, next to a ghost rocket that gains your Δv.)" % [n(launch["m"]), n(fuel), n(exhaust)]
 
 
 func solution_steps() -> Array[String]:
 	var m1: float = launch["m"] - fuel
 	return [
-		"Momentum of bird + exhaust is conserved:  m·dv = v_e·dm",
+		"Momentum of ball + exhaust is conserved:  m·dv = v_e·dm",
 		"Adding that up over the burn:  Δv = v_e·ln(m₀ / m₁)",
 		"m₀ = %s kg,  m₁ = m₀ − fuel = %s kg" % [n(launch["m"]), n(m1)],
 		"Δv = %s·ln(%s / %s) = %s m/s" % [n(exhaust), n(launch["m"]), n(m1), n(correct[0])],

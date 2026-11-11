@@ -1,6 +1,6 @@
 # Physics Slingshot — Project Plan
 
-An Angry Birds–style game built as a **physics learning tool**. You edit the parameters in the bird's
+A slingshot game built as a **physics learning tool** (it began as an Angry Birds–style prototype; since 2026-11-12 it has its own look and names, see the end of this log). You edit the parameters in the ball's
 motion formula, stage the changes, and they only take effect when you press **Activate**.
 
 ## Decisions so far
@@ -343,8 +343,8 @@ your number becomes something you can see next to what really happens:
 - Clicking in the world ends typing in a number box (the value is applied and Space launches again).
 - F11 fullscreen (Esc leaves it). The monospace font falls back to Consolas / Menlo on Windows / macOS. Own icon.
 - Zero GDScript warnings in the editor (also with every warning treated as an error).
-- Open question: the "Yellow bird: when to tap" problem and the "Yellow bird: straight shot" level fly the purple
-  Custom bird with g → 0, while the Yellow bird itself is the speed boost. Rename them, or give them the yellow bird?
+- Open question (settled 2026-11-12, see below): the "Yellow bird: when to tap" problem and the "Yellow bird:
+  straight shot" level fly the purple Custom bird with g → 0, while the Yellow bird itself is the speed boost.
 
 ## Changed 2026-11-05: UI/UX redesign of the dock
 
@@ -367,6 +367,39 @@ your number becomes something you can see next to what really happens:
 - World: pig force arrows use the action cam's log scale (the big pig's gravity arrow no longer ends under
   the dock); the split's "center of mass" / "unsplit bird" labels moved behind the marker; the level's
   name is big and its task under it.
+
+## Changed 2026-11-12: own look, lecture cues, the miss in meters
+
+From a design council (five roles, three rounds). In the code a ball is still a *bird* and a can a *pig*, and
+the ids in level files are unchanged, so old files load; only what's on screen changed.
+
+- **Own look and names** (`scenes/bird_types.gd`, `bird_art.gd`, `pig.gd`): Plain, Booster, Splitter, Dropper
+  (drops Ballast), Rocket, Custom. Every ball is one round body with eyes at the front and a mark for its job
+  (chevrons, a seam, ballast slung underneath, a rocket, dials); new colours. Targets are cans seen end-on (they
+  roll, a stripe shows the spin); the big one is a drum that dents on the first hit. A knocked-out can crumples flat.
+  All on-screen text and the README follow. This also settles the 2026-11-04 open question: the "Yellow bird"
+  problem and level are now "Gravity off: when to tap" / "Gravity off: straight shot".
+- **Every level load starts from the same state** (`Level.apply_settings`, `main.load_level`): settings a level
+  doesn't mention get their defaults (before, "Egg drop" then "Tower" flew the egg bird at 17 m/s, 50°), and the
+  view resets (speed 1×, Fit, no action cam, no formulas). Tested in `levels_and_editor.gd`.
+- **The game opens on an empty range** (`LevelPresets.open_range()`), not on the tower. The Levels tab lists it first.
+- **Lecture cues** (`LevelPresets.cues()`, `main.cue_key`): six levels that each ask one question. PageDown / PageUp
+  (a presenter clicker's keys; ← → too) walk through them: asked big with lettered options and the prediction
+  hidden → PageDown flies it → the reveal line (starting with the right letter) and everything hidden appear when
+  the shot ends → PageDown loads the next. A cue is a level with optional keys `question`, `options`, `reveal`,
+  `stop_at_apex`, `activate_at` (seconds or "apex"), `mark`, `reveal_on_key`; no format version change.
+  Cues: mass and the arc · speed at the top (freezes itself at the apex) · two angles, one range · gravity off
+  (Newton's first law) · split and center of mass · unknown planet (the reveal waits for PageDown).
+  PageDown is ignored while a shot is in the air, and a second press within 250 ms is ignored.
+- **Strobe trail** (`ui/trail.gd`, `Bird._fly`): a dot every 0.1 s of formula flight, on the same ticks as the
+  white prediction dots. **Auto-stop**: `Bird.pause_at` pauses on the exact moment (only that much of the step is flown).
+- **The miss, in meters** (`main._measure_miss`, `ui/shot_marks.gd`): a shot that comes down on the ground with
+  cans standing gets "Missed by 1.8 m: landed short of the can." and a tape measure in the world from the path's
+  closest point to that can. Not after hitting a block (the tower may still fall) and not for a split. The last
+  can going down reports "All down in N shots."
+- **Practice verdict** (`practice_panel.gd`): "✗ 9 % high · landed 2.1 m short of your flag" / "✓ Correct on
+  call 2"; "Not quite", "try again" and the separate too-high/too-low hint are gone.
+- Test: `tests/scenarios/cues.gd` (cues, strobe, auto-stop, miss).
 
 ## Possible next steps (not started)
 

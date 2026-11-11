@@ -19,7 +19,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "v₀ = %s m/s, θ = %s°, g = %s m/s², launched from y₀ = %s m.\nHow long is the bird in the air?" % [n(launch["v0"]), n(launch["theta"]), n(launch["g"]), n(launch["y0"])]
+	return "v₀ = %s m/s, θ = %s°, g = %s m/s², launched from y₀ = %s m.\nHow long is the ball in the air?" % [n(launch["v0"]), n(launch["theta"]), n(launch["g"]), n(launch["y0"])]
 
 
 func solution_steps() -> Array[String]:

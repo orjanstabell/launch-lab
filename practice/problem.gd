@@ -77,7 +77,7 @@ func judge(given: Array[float]) -> Dictionary:
 		var closest := Kinematics.closest_approach(p, target)
 		if closest.y > HIT_TOLERANCE_M:
 			var passed := Kinematics.position(p, closest.x)
-			var which := "" if targets.size() == 1 else (" pig %d" % (targets.find(target) + 1))
+			var which := "" if targets.size() == 1 else (" can %d" % (targets.find(target) + 1))
 			return {"ok": false, "message": "✗ Missed%s by %s m: passed %s it" % [which, n(closest.y, 1), "above" if passed.y > target.y else "below"]}
 	return {"ok": true, "message": "✓ Hit!" if targets.size() <= 1 else "✓ Hit them all!"}
 

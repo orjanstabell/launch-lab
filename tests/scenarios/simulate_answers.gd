@@ -11,7 +11,7 @@ var main
 var P
 var fails := 0
 # These ghosts are a different bird (the first shot), not "your answer":
-const OTHER_BIRD_GHOSTS := ["Same range, other angle", "Spring slingshot: heavy vs light bird"]
+const OTHER_BIRD_GHOSTS := ["Same range, other angle", "Spring slingshot: heavy vs light ball"]
 
 func _initialize():
 	main = load("res://scenes/main.tscn").instantiate()

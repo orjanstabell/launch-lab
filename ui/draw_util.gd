@@ -26,11 +26,11 @@ static func size_factor(canvas: CanvasItem) -> float:
 ## of the baseline. right_align puts the END of the text at the offset instead.
 ## outlined = false skips the dark outline (for quiet labels such as rulers).
 ## The text is drawn at its final on-screen size, so it stays sharp when zoomed.
-static func label(canvas: CanvasItem, anchor: Vector2, offset: Vector2, text: String, color: Color, right_align := false, outlined := true):
+static func label(canvas: CanvasItem, anchor: Vector2, offset: Vector2, text: String, color: Color, right_align := false, outlined := true, font_size := FONT_SIZE):
 	var z := zoom(canvas)
 	var grow := sqrt(z)
 	var font := ThemeDB.fallback_font
-	var size := roundi(FONT_SIZE * grow)
+	var size := roundi(font_size * grow)
 	var pos := offset * grow
 	if right_align:
 		pos.x -= font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x

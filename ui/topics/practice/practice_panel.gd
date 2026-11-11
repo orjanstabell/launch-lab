@@ -220,7 +220,7 @@ func check():
 		# Fly once with the answers, then judge (control) or say how the
 		# prediction did (predict).
 		_launch(given, true)
-		_feedback.text = "Attempt %d: flying..." % attempts
+		_feedback.text = "Call %d: flying..." % attempts
 	changed.emit()
 
 
@@ -271,17 +271,34 @@ func _check_shot():
 		return
 	var result := problem.judge(given)
 	PhysicsParams.announce(result["message"])
-	_feedback.text = "%s · attempt %d%s" % [_your_answers(), attempts, "" if result["ok"] else " · try again"]
+	_feedback.text = "%s · call %d" % [_your_answers(), attempts]
 
 
+## The verdict on a prediction is a measurement, not a grade: how far off it
+## was, and which call this was (a right answer on the fifth call isn't the
+## same as on the first).
 func _announce_prediction():
 	var ok := problem.is_correct(given)
 	var what_happened := problem.outcome(given)
-	var hint := ""
-	if not ok and given.size() == 1:
-		hint = " · too %s" % ("high" if given[0] > problem.correct[0] else "low")
-	PhysicsParams.announce("%s%s" % ["✓ Correct!" if ok else "✗ Not quite", "  ·  " + what_happened if what_happened != "" else ""])
-	_feedback.text = "%s%s · attempt %d%s" % [_your_answers(), hint, attempts, "" if ok else " · try again"]
+	var verdict := "✓ Correct on call %d" % attempts if ok else "✗ " + _how_far_off()
+	PhysicsParams.announce("%s%s" % [verdict, "  ·  " + what_happened if what_happened != "" else ""])
+	_feedback.text = "%s · call %d" % [_your_answers(), attempts]
+
+
+## "12 % high" (with the answer's symbol when there are several), for each number that's off.
+func _how_far_off() -> String:
+	var parts := []
+	for i in mini(given.size(), problem.correct.size()):
+		var right: float = problem.correct[i]
+		if absf(given[i] - right) <= maxf(absf(right) * problem.tolerance_percent / 100.0, 0.01):
+			continue
+		var side := "high" if given[i] > right else "low"
+		var amount := "too %s" % side
+		if absf(right) > 0.01:
+			var percent := absf(given[i] - right) / absf(right) * 100.0
+			amount = "%s %% %s" % [String.num(percent, 0 if percent >= 10.0 else 1), side]
+		parts.append(amount if given.size() == 1 else "%s %s" % [problem.answers[i]["label"], amount])
+	return ", ".join(parts) if not parts.is_empty() else "Not it"
 
 
 ## Set one launch value: the scene's values, or the spring's, the egg's
@@ -320,7 +337,6 @@ func show_solution():
 		for i in problem.answers.size():
 			parts.append("%s = %s %s" % [problem.answers[i]["label"], Problem.n(problem.correct[i]), problem.answers[i]["unit"]])
 	_feedback.text = "Answer: " + ", ".join(parts)
-	PhysicsParams.request_details()
 	if problem.kind == "predict" and problem.flies and _watching.is_empty():
 		_launch(problem.correct, false)
 	changed.emit()

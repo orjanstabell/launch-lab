@@ -21,7 +21,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "Gravity pulls a %s kg bird down with F = %s N.\nWhat is its acceleration? (Which planet is it on?) Check throws it off a 10 m ledge, next to a ghost that falls with your a." % [n(launch["m"]), n(launch["m"] * launch["g"])]
+	return "Gravity pulls a %s kg ball down with F = %s N.\nWhat is its acceleration? (Which planet is it on?) Check throws it off a 10 m ledge, next to a ghost that falls with your a." % [n(launch["m"]), n(launch["m"] * launch["g"])]
 
 
 func solution_steps() -> Array[String]:

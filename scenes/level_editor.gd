@@ -15,8 +15,8 @@ const PIECES := {
 	"post": Vector2(0.3, 1.6),
 	"plank": Vector2(2.8, 0.3),
 	"wall": Vector2(0.4, 3.0),
-	"pig": Vector2(0.8, 0.8),
-	"big pig": Vector2(1.2, 1.2),
+	"can": Vector2(0.8, 0.8),
+	"drum": Vector2(1.2, 1.2),
 }
 const SNAP_M := 0.1   # horizontal snapping
 const GHOST_COLOR := Color(1, 1, 1, 0.35)
@@ -59,8 +59,8 @@ func handle_input(event: InputEvent, at: Vector2):
 func _place(at: Vector2):
 	var size: Vector2 = PIECES[piece]
 	var center := _drop(size, at, {})
-	if piece.ends_with("pig"):
-		Level.add_pig(data, center, piece == "big pig")
+	if piece in ["can", "drum"]:
+		Level.add_pig(data, center, piece == "drum")
 	else:
 		Level.add_block(data, size, center)
 	changed.emit()
@@ -106,7 +106,7 @@ func _piece_at(at: Vector2) -> Dictionary:
 
 func _size_of(item: Dictionary) -> Vector2:
 	if item["list"] == "pigs":
-		return PIECES["big pig" if data["pigs"][item["index"]].get("big", false) else "pig"]
+		return PIECES["drum" if data["pigs"][item["index"]].get("big", false) else "can"]
 	var block: Dictionary = data["blocks"][item["index"]]
 	return Vector2(block["w"], block["h"])
 
@@ -131,7 +131,7 @@ func _draw():
 		DrawUtil.label(self, Units.to_px(Vector2(entry["x"], entry["y"] + size.y / 2.0)), Vector2(-60, -10), "drag to move · right-click to delete", HOVER_COLOR)
 	else:
 		var size: Vector2 = PIECES[piece]
-		_outline(_drop(size, _mouse, {}), size, piece.ends_with("pig"), GHOST_COLOR, k)
+		_outline(_drop(size, _mouse, {}), size, piece in ["can", "drum"], GHOST_COLOR, k)
 
 
 func _outline(center: Vector2, size: Vector2, is_round: bool, color: Color, k: float):

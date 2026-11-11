@@ -44,7 +44,7 @@ func _draw():
 		draw_string(font, area.position + Vector2(10, 30), "energy hidden", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.5))
 		return
 	if _samples.is_empty():
-		var hint := "Launch a bird to see its energy over time." if not is_instance_valid(PhysicsParams.bird) else "Unpause to record the energy."
+		var hint := "Launch a ball to see its energy over time." if not is_instance_valid(PhysicsParams.bird) else "Unpause to record the energy."
 		draw_string(font, area.position + Vector2(10, 30), hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color(1, 1, 1, 0.5))
 		return
 

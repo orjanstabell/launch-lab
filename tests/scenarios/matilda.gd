@@ -1,5 +1,5 @@
 extends SceneTree
-## Matilda: throwing the egg conserves momentum, kicks her up by (m_egg/m)·u,
+## The Dropper: throwing the egg conserves momentum, kicks her up by (m_egg/m)·u,
 ## keeps the center of mass on the old arc, and the egg can knock out a pig.
 var main
 var P
@@ -25,15 +25,15 @@ func run():
 	main.launch(); await frames(30)
 	var b = main.bird
 	var v_before = b.velocity_m()
-	ok("Matilda can throw her egg", P.can_activate())
+	ok("the Dropper can throw her egg", P.can_activate())
 	P.activate()
 	ok("only one egg", not P.can_activate())
-	ok("two pieces: Matilda and the egg", b.pieces.size() == 2 and b.pieces[1].type == "egg")
+	ok("two pieces: the Dropper and the egg", b.pieces.size() == 2 and b.pieces[1].type == "egg")
 	var info = b.split_info
 	ok("momentum conserved (%s → %s)" % [info["p_before"], info["p_after"]], info["p_before"].distance_to(info["p_after"]) < 1e-4)
 	var kick = b.velocity_m().y - v_before.y
 	ok("kicked up by (m_egg/m)·u = 0.25·20 = 5 m/s (got %.4f)" % kick, absf(kick - 5.0) < 1e-3)
-	ok("Matilda is now 1.5 kg, the egg 0.5 kg", is_equal_approx(b.segment.m, 1.5) and is_equal_approx(b.pieces[1].segment.m, 0.5))
+	ok("the Dropper is now 1.5 kg, the egg 0.5 kg", is_equal_approx(b.segment.m, 1.5) and is_equal_approx(b.pieces[1].segment.m, 0.5))
 	var worst := 0.0
 	for i in 40:
 		await physics_frame
@@ -58,6 +58,7 @@ func run():
 	var level = L.blank("egg drop")
 	L.add_pig(level, Vector2(12.0, 0.4))
 	main.load_level(level)
+	P.set_bird_type("matilda"); P.set_value("m", 2.0)   # (a level starts from the defaults)
 	P.set_egg_value("mass", 1.0); P.set_egg_value("speed", 10.0)
 	await frames(40)
 	P.set_value("theta", 45.0); P.set_value("v0", 14.0)

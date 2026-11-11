@@ -37,7 +37,7 @@ func fly(theta, v0, tap):
 	var target = main.get_tree().get_nodes_in_group("pigs")[0]
 	for i in 600:
 		await physics_frame
-		if tap < 0.0 and is_instance_valid(main.bird) and P.can_activate() and is_instance_valid(target):   # Matilda's egg
+		if tap < 0.0 and is_instance_valid(main.bird) and P.can_activate() and is_instance_valid(target):   # the Dropper's egg
 			var at = Vector2(target.position.x, -target.position.y) / 50.0
 			var egg_path = main.bird.preview_segments()[1]
 			var close = K.closest_approach(egg_path, at)

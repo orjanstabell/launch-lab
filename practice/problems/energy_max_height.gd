@@ -20,7 +20,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "A %s kg bird is launched at v₀ = %s m/s, θ = %s° from y₀ = %s m (g = %s m/s²).\nUse energy: how high is the top of its flight?" % [n(launch["m"]), n(launch["v0"]), n(launch["theta"]), n(launch["y0"]), n(launch["g"])]
+	return "A %s kg ball is launched at v₀ = %s m/s, θ = %s° from y₀ = %s m (g = %s m/s²).\nUse energy: how high is the top of its flight?" % [n(launch["m"]), n(launch["v0"]), n(launch["theta"]), n(launch["y0"]), n(launch["g"])]
 
 
 func solution_steps() -> Array[String]:

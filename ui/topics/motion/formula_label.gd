@@ -16,7 +16,7 @@ func _build_lines() -> Array:
 	if details:
 		var heading := "NEXT LAUNCH"
 		if flying:
-			heading = "BIRD IN FLIGHT" if first_segment else "BIRD IN FLIGHT: segment %d (t restarts at each Activate)" % (bird.activations + 1)
+			heading = "BALL IN FLIGHT" if first_segment else "BALL IN FLIGHT: segment %d (t restarts at each Activate)" % (bird.activations + 1)
 		return [heading] + _formula_lines(p, first_segment)
 
 	# Compact: always the same four lines in fixed columns, so the panel keeps
@@ -26,7 +26,7 @@ func _build_lines() -> Array:
 	var row2 := "  vx = %s m/s  vy = %s m/s  |v| = %s m/s"
 	if not is_instance_valid(bird):
 		var dash := "–".lpad(6)
-		lines.append("NOW  no bird yet")
+		lines.append("NOW  no ball yet")
 		lines.append(row1 % [dash, dash, dash])
 		lines.append(row2 % [dash, dash, dash])
 		return lines

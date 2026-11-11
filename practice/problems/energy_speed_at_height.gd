@@ -24,7 +24,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "A bird is launched at v₀ = %s m/s, θ = %s° from y₀ = %s m (g = %s m/s²).\nHow fast is it moving when it is at height y = %s m?" % [n(launch["v0"]), n(launch["theta"]), n(launch["y0"]), n(launch["g"]), n(height)]
+	return "A ball is launched at v₀ = %s m/s, θ = %s° from y₀ = %s m (g = %s m/s²).\nHow fast is it moving when it is at height y = %s m?" % [n(launch["v0"]), n(launch["theta"]), n(launch["y0"]), n(launch["g"]), n(height)]
 
 
 func solution_steps() -> Array[String]:

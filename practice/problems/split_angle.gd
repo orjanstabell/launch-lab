@@ -28,7 +28,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "A %s kg bird flying at %s m/s splits into 2 equal pieces that fly off at ±α, each at %s m/s.\nMomentum is conserved. What is α?\n(Check splits it at the top of its arc with your angle: watch the center of mass.)" % [n(launch["m"]), n(speed), n(piece_speed)]
+	return "A %s kg ball flying at %s m/s splits into 2 equal pieces that fly off at ±α, each at %s m/s.\nMomentum is conserved. What is α?\n(Check splits it at the top of its arc with your angle: watch the center of mass.)" % [n(launch["m"]), n(speed), n(piece_speed)]
 
 
 func solution_steps() -> Array[String]:
@@ -36,7 +36,7 @@ func solution_steps() -> Array[String]:
 		"Along the original direction: m·v = 2·(m/2)·v'·cos α   (the sideways parts cancel)",
 		"So v = v'·cos α  →  cos α = v / v' = %s / %s = %s" % [n(speed), n(piece_speed), n(speed / piece_speed, 4)],
 		"α = acos(%s) = %s°" % [n(speed / piece_speed, 4), n(correct[0])],
-		"The pieces must be faster than the bird was: only part of their speed points forward.",
+		"The pieces must be faster than the ball was: only part of their speed points forward.",
 	]
 
 
@@ -60,8 +60,8 @@ func ghosts(_given: Array[float]) -> Array[Dictionary]:
 ## How the forward momentum after the split compares, as a sentence.
 func _momentum_outcome(forward_speed: float) -> String:
 	if absf(forward_speed - speed) / speed < tolerance_percent / 100.0:
-		return "Momentum conserved: the center of mass stayed with the unsplit bird"
-	return "Σp after the split was %s: the center of mass %s the unsplit bird" % [percent_off(forward_speed, speed), "ran ahead of" if forward_speed > speed else "fell behind"]
+		return "Momentum conserved: the center of mass stayed with the unsplit ball"
+	return "Σp after the split was %s: the center of mass %s the unsplit ball" % [percent_off(forward_speed, speed), "ran ahead of" if forward_speed > speed else "fell behind"]
 
 
 func outcome(given: Array[float]) -> String:

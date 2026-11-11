@@ -8,6 +8,7 @@ var fails := 0
 func _initialize():
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
+	main.level_data = load("res://levels/level_presets.gd").tower()   # (the game itself opens on an empty range)
 	P = root.get_node("PhysicsParams")
 	run()
 func frames(n):

@@ -7,7 +7,7 @@ var wanted := 10.0
 
 func _init():
 	topic = "Momentum"
-	title = "Rocket bird: fuel for a speed boost"
+	title = "Rocket: fuel for a speed boost"
 	bird_type = "rocket"
 	answers = [{"label": "fuel", "unit": "kg", "min": 0.0, "max": 50.0, "step": 0.001}]
 	hidden_keys = ["v", "p", "fuel"]
@@ -27,7 +27,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "A rocket bird has mass %s kg with its fuel, and exhaust speed v_e = %s m/s.\nHow much fuel must it burn to gain Δv = %s m/s?\n(Check fires it at the top of its arc with the right fuel, next to a ghost that burns yours.)" % [n(launch["m"]), n(exhaust), n(wanted)]
+	return "A Rocket has mass %s kg with its fuel, and exhaust speed v_e = %s m/s.\nHow much fuel must it burn to gain Δv = %s m/s?\n(Check fires it at the top of its arc with the right fuel, next to a ghost that burns yours.)" % [n(launch["m"]), n(exhaust), n(wanted)]
 
 
 func solution_steps() -> Array[String]:

@@ -1,7 +1,9 @@
 class_name LevelsPanel
 extends VBoxContainer
 ## The Levels tab: pick a level and play it.
-##   ★ levels are built in; the others are levels you saved (in the Editor tab).
+##   ★ levels are built in (the first is the empty range the game opens on);
+##   ▶ are the lecture cues (PageDown steps through them);
+##   the others are levels you saved (in the Editor tab).
 ##   Click one to read its task, double-click (or Load) to play it.
 ##   Delete removes a saved level (a second click confirms); Import… adds a level .json file (e.g. one
 ##   handed out for a class). Random plays a new random level (LevelGenerator).
@@ -66,9 +68,12 @@ func setup(owner_main: Node):
 func refresh(select_name := ""):
 	_list.clear()
 	_levels.clear()
-	for preset in LevelPresets.all():
+	for preset in [LevelPresets.open_range()] + LevelPresets.all():
 		_list.add_item("★ " + preset["name"])
 		_levels.append({"level": preset, "saved": false})
+	for cue in LevelPresets.cues():
+		_list.add_item("▶ " + cue["name"])
+		_levels.append({"level": cue, "saved": false})
 	for level in LevelStore.list():
 		_list.add_item(level["name"])
 		_levels.append({"level": level, "saved": true})
@@ -83,7 +88,7 @@ func _on_selected(index: int):
 		_about.text = "Pick a level to read its task."
 		return
 	var level: Dictionary = _levels[index]["level"]
-	var task: String = level.get("description", "")
+	var task: String = level.get("question", level.get("description", ""))
 	_about.text = task if task != "" else "(no task text)"
 
 

@@ -59,11 +59,11 @@ func _ready():
 	_spring_toggle.text = "Spring launch"
 	_spring_toggle.toggle_mode = true
 	_spring_toggle.focus_mode = Control.FOCUS_NONE
-	_spring_toggle.tooltip_text = "Launch with the slingshot's spring: set k and the pull Δx,\nand v₀ = Δx·√(k/m) follows from ½·k·Δx² = ½·m·v₀².\nA heavier bird then launches slower!"
+	_spring_toggle.tooltip_text = "Launch with the slingshot's spring: set k and the pull Δx,\nand v₀ = Δx·√(k/m) follows from ½·k·Δx² = ½·m·v₀².\nA heavier ball then launches slower!"
 	_spring_toggle.toggled.connect(_on_spring_toggled)
 	_grid.add_child(_spring_toggle)
 	var ability_title := UiTheme.heading("On activate")
-	ability_title.tooltip_text = "What the yellow / custom bird's ability changes when you use it mid-air (Space)"
+	ability_title.tooltip_text = "What the Booster's or Custom's ability changes when you use it mid-air (Space)"
 	ability_title.mouse_filter = Control.MOUSE_FILTER_PASS   # (so the tooltip shows)
 	_add_ability_cell(ability_title)
 	_add_ability_cell(Control.new())
@@ -82,10 +82,9 @@ func _ready():
 
 func _add_bird_picker(box: VBoxContainer):
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
+	row.add_theme_constant_override("separation", 3)   # six names in a row: kept tight, or the dock outgrows the screen
 	box.add_child(row)
-	var title := UiTheme.heading("Bird")
-	title.custom_minimum_size.x = 50
+	var title := UiTheme.heading("Ball")
 	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(title)
 
@@ -100,6 +99,7 @@ func _add_bird_picker(box: VBoxContainer):
 		button.toggle_mode = true
 		button.button_group = group
 		button.custom_minimum_size = Vector2(0, 34)
+		button.add_theme_constant_override("h_separation", 2)
 		button.focus_mode = Control.FOCUS_NONE
 		button.tooltip_text = info["about"]
 		button.pressed.connect(PhysicsParams.set_bird_type.bind(type))
@@ -124,7 +124,7 @@ func _add_split_row(box: VBoxContainer):
 	_split_pieces.min_value = 2
 	_split_pieces.max_value = 5
 	_split_pieces.value_changed.connect(_on_split_changed.bind("pieces"))
-	_split_pieces.tooltip_text = "How many equal pieces the blue bird splits into"
+	_split_pieces.tooltip_text = "How many equal pieces the Splitter splits into"
 	_split_row.add_child(_split_pieces)
 
 	var spread_label := Label.new()
@@ -141,7 +141,7 @@ func _add_split_row(box: VBoxContainer):
 	_split_conserve = CheckBox.new()
 	_split_conserve.text = "Conserve momentum"
 	_split_conserve.focus_mode = Control.FOCUS_NONE
-	_split_conserve.tooltip_text = "On: the pieces speed up so total momentum stays the same (real physics).\nOff: they keep the bird's speed, like the real game (momentum is lost)."
+	_split_conserve.tooltip_text = "On: the pieces speed up so total momentum stays the same (real physics).\nOff: they keep the ball's speed, and momentum is lost."
 	_split_conserve.toggled.connect(_on_split_changed.bind("conserve"))
 	_split_row.add_child(_split_conserve)
 
@@ -165,12 +165,12 @@ func _add_rocket_row(box: VBoxContainer):
 		_rocket_row.add_child(spin)
 		_rocket_spins[key] = spin
 	_rocket_result = Label.new()
-	_rocket_result.tooltip_text = "The rocket equation: Δv = v_e·ln(m₀/m₁), with m₀ = bird + fuel and m₁ = m₀ − fuel.\nThrust F = v_e·ṁ, burn time = fuel / ṁ."
+	_rocket_result.tooltip_text = "The rocket equation: Δv = v_e·ln(m₀/m₁), with m₀ = ball + fuel and m₁ = m₀ − fuel.\nThrust F = v_e·ṁ, burn time = fuel / ṁ."
 	_rocket_result.mouse_filter = Control.MOUSE_FILTER_STOP
 	_rocket_row.add_child(_rocket_result)
 
 
-## Matilda's egg: its mass, how fast she throws it, and the kick she gets.
+## the Dropper's egg: its mass, how fast she throws it, and the kick she gets.
 func _add_egg_row(box: VBoxContainer):
 	_egg_row = HBoxContainer.new()
 	_egg_row.add_theme_constant_override("separation", 6)
@@ -191,11 +191,11 @@ func _add_egg_row(box: VBoxContainer):
 	_egg_straight = CheckBox.new()
 	_egg_straight.text = "straight down"
 	_egg_straight.focus_mode = Control.FOCUS_NONE
-	_egg_straight.tooltip_text = "Off: she just lets go sideways, so the egg keeps her forward speed and lands ahead.\nOn: she also throws it backwards so it falls straight down on screen (like in the game).\nMomentum then pushes HER forwards: vₓ' = vₓ·m/m_bird."
+	_egg_straight.tooltip_text = "Off: it just lets go, so the ballast keeps the forward speed and lands ahead.\nOn: it also throws the ballast backwards, so the ballast falls straight down on screen.\nMomentum then pushes the Dropper forwards: vₓ' = vₓ·m/m_body."
 	_egg_straight.toggled.connect(_on_egg_straight_toggled)
 	_egg_row.add_child(_egg_straight)
 	_egg_result = Label.new()
-	_egg_result.tooltip_text = "Momentum is conserved: m_egg·Δv_egg + m_bird·Δv_bird = 0,\nand the egg leaves at u relative to her. So she is kicked up by (m_egg/m)·u\nand the egg gets (m_bird/m)·u extra downwards."
+	_egg_result.tooltip_text = "Momentum is conserved: m_ballast·Δv_ballast + m_body·Δv_body = 0,\nand the ballast leaves at u relative to the Dropper. So the Dropper is kicked up by (m_ballast/m)·u\nand the ballast gets (m_body/m)·u extra downwards."
 	_egg_result.mouse_filter = Control.MOUSE_FILTER_STOP
 	_egg_row.add_child(_egg_result)
 

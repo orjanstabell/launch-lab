@@ -24,7 +24,7 @@ static func generate(level_seed: int) -> Dictionary:
 
 static func _build(rng: RandomNumberGenerator) -> Dictionary:
 	var level := Level.blank()
-	level["description"] = "A random level: knock down every pig. (To keep it, Save it in the Editor tab.)"
+	level["description"] = "A random level: knock down every can. (To keep it, Save it in the Editor tab.)"
 	level["launch"] = {"g": 9.81, "y0": 1.0}   # what the winnable check assumes
 	var x := FIRST_X + rng.randf_range(0.0, 6.0)
 	for i in rng.randi_range(2, 3):

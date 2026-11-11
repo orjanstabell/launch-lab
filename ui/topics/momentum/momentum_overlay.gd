@@ -56,7 +56,7 @@ func _draw():
 	var unsplit := Units.to_px(Kinematics.position(bird.pre_split, t_unsplit))
 	draw_arc(unsplit, 12.0 * k, 0.0, TAU, 24, UNSPLIT_COLOR, 2.5 * k, true)
 	# Both labels behind the marker (the pieces fly on ahead of it, fanned above and below).
-	DrawUtil.label(self, unsplit, Vector2(-22, 14), "unsplit bird (o)", UNSPLIT_COLOR, true)
+	DrawUtil.label(self, unsplit, Vector2(-22, 14), "unsplit ball (o)", UNSPLIT_COLOR, true)
 
 	var size := 10.0 * k
 	draw_line(com - Vector2(size, 0), com + Vector2(size, 0), COM_COLOR, 3.0 * k)
@@ -72,7 +72,7 @@ func _draw_pigs(k: float):
 		if p.length() < 0.05:
 			continue   # resting: nothing to show
 		_p_arrow(pig.position, p, k, PIG_COLOR)
-		DrawUtil.label(self, pig.position + _arrow_vector(p, k), Vector2(10, -6), "p pig = %s kg·m/s" % Reveal.num(p.length(), ["p"]), PIG_COLOR)
+		DrawUtil.label(self, pig.position + _arrow_vector(p, k), Vector2(10, -6), "p can = %s kg·m/s" % Reveal.num(p.length(), ["p"]), PIG_COLOR)
 
 
 ## The rest of the arc the bird was on when it split: where it would have gone.

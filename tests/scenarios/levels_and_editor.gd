@@ -36,6 +36,12 @@ func run():
 	main.load_level(presets[3])
 	ok("'Find the hidden g': g hidden, randomized (g = %.2f)" % P.values["g"], R.is_hidden("g") and not is_equal_approx(P.values["g"], 9.81))
 	R.show_all()
+	# Nothing leaks from one level into the next: settings a level doesn't mention are the defaults
+	main.load_level(presets.filter(func(l): return l.get("bird_type", "") == "matilda")[0])
+	main.sim_controls.cycle_speed(); main.sim_controls.cycle_zoom(); main.sim_controls.cycle_action_cam(); main.set_show_details(true)
+	main.load_level(load("res://levels/level_presets.gd").tower())
+	ok("a level starts from the defaults (bird %s, v0 %.1f, θ %.1f, speed %s×, zoom %s, action cam %s, formulas %s)" % [P.bird_type, P.values["v0"], P.values["theta"], Engine.time_scale, main.follow_zoom, main.action_cam_enabled, main.show_details],
+		P.bird_type == "red" and is_equal_approx(P.values["v0"], 15.0) and is_equal_approx(P.values["theta"], 45.0) and Engine.time_scale == 1.0 and main.follow_zoom == 0.0 and not main.action_cam_enabled and not main.show_details)
 	# Editor
 	var levels_panel = main.topics[5].editor_panel
 	main.show_topic(5)
@@ -52,7 +58,7 @@ func run():
 	var b = main.level_data["blocks"]
 	ok("first box on the ground at x snapped to 10.0 (%s)" % [b[0]], b.size() >= 1 and is_equal_approx(b[0]["y"], 0.3) and is_equal_approx(b[0]["x"], 10.0))
 	ok("second box stacks on the first (y = %.2f)" % (b[1]["y"] if b.size() > 1 else -1.0), b.size() == 2 and is_equal_approx(b[1]["y"], 0.9))
-	main.editor.piece = "pig"
+	main.editor.piece = "can"
 	click.call(Vector2(10.0, 5.0)); click.call(Vector2(10.0, 5.0), MOUSE_BUTTON_LEFT, false)
 	ok("pig drops onto the stack (y = %.2f)" % main.level_data["pigs"][0]["y"], is_equal_approx(main.level_data["pigs"][0]["y"], 1.6))
 	await frames(2)

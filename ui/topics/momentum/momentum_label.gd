@@ -21,7 +21,7 @@ func _build_lines() -> Array:
 	elif bird.pieces.is_empty():
 		var v: Vector2 = bird.velocity_m()
 		var p: Vector2 = bird.mass_now() * v
-		lines.append("Bird:  m = %s kg   |v| = %s m/s" % [_n(bird.mass_now(), ["m"]), Reveal.live(v.length(), ["v"])])
+		lines.append("Ball:  m = %s kg   |v| = %s m/s" % [_n(bird.mass_now(), ["m"]), Reveal.live(v.length(), ["v"])])
 		lines.append("  px = %s   py = %s   |p| = %s" % [Reveal.live(p.x, ["p", "m", "vx"]), Reveal.live(p.y, ["p", "m", "vy"]), Reveal.live(p.length(), ["p", "m", "v"])])
 		if bird.ability_kind() == "split":
 			lines.append("")
@@ -29,8 +29,8 @@ func _build_lines() -> Array:
 			lines.append("with momentum conserved, it stays on the old arc.")
 		elif bird.ability_kind() == "egg":
 			lines.append("")
-			lines.append("Press Space to throw the egg down. Momentum is conserved,")
-			lines.append("so the throw kicks Matilda up: recoil, like a gun.")
+			lines.append("Press Space to throw the ballast down. Momentum is conserved,")
+			lines.append("so the throw kicks the Dropper up: recoil, like a gun.")
 	else:
 		lines.append_array(_split_lines(bird))
 	if is_instance_valid(bird) and bird.ability_kind() == "rocket":
@@ -48,8 +48,8 @@ func _rocket_lines(bird: Bird) -> Array:
 	var lines := [
 		"",
 		"ROCKET EQUATION",
-		"The bird pushes exhaust backwards; the exhaust pushes the bird forwards.",
-		"Momentum of bird + exhaust is conserved: in a short time the bird",
+		"The ball pushes exhaust backwards; the exhaust pushes the ball forwards.",
+		"Momentum of ball + exhaust is conserved: in a short time the ball",
 		"(mass m) speeds up by dv while throwing out dm at speed v_e:",
 		"  m·dv = v_e·dm   →   Δv = v_e·ln(m₀ / m₁)",
 		"Exhaust %s m/s, fuel %s kg: from %s kg down to %s kg" % [String.num(settings["exhaust"], 1), _n(fuel, ["fuel"]), _n(m0, ["m"]), _n(m0 - fuel, ["m", "fuel"])],
@@ -66,7 +66,7 @@ func _rocket_lines(bird: Bird) -> Array:
 			var plain := _without_rocket(bird.segment)
 			var expected: Vector2 = bird.segment.m * Kinematics.velocity(plain, bird.t)
 			var p_from := ["p", "m", "v"]
-			lines.append("Bird + exhaust: Σp (%s, %s)" % [Reveal.live(total.x, p_from), Reveal.live(total.y, p_from)])
+			lines.append("Ball + exhaust: Σp (%s, %s)" % [Reveal.live(total.x, p_from), Reveal.live(total.y, p_from)])
 			lines.append("No rocket at all: p  (%s, %s)  ≈ the same!" % [Reveal.live(expected.x, p_from), Reveal.live(expected.y, p_from)])
 	return lines
 
@@ -97,7 +97,7 @@ func _hit_lines(hit: Dictionary) -> Array:
 	for when in ["before", "after"]:
 		var bird_p: Vector2 = hit["bird_m"] * hit["bird_" + when]
 		var other_p: Vector2 = hit["other_m"] * hit["other_" + when]
-		rows.append("  %-6s bird (%s, %s)  %s (%s, %s)  Σp (%s, %s)" % [when, _n(bird_p.x, p_from), _n(bird_p.y, p_from), hit["other_name"], _n(other_p.x, p_from), _n(other_p.y, p_from), _n(bird_p.x + other_p.x, p_from), _n(bird_p.y + other_p.y, p_from)])
+		rows.append("  %-6s ball (%s, %s)  %s (%s, %s)  Σp (%s, %s)" % [when, _n(bird_p.x, p_from), _n(bird_p.y, p_from), hit["other_name"], _n(other_p.x, p_from), _n(other_p.y, p_from), _n(bird_p.x + other_p.x, p_from), _n(bird_p.y + other_p.y, p_from)])
 	var explanation := [
 		"Σp stayed (nearly) the same: the push between them is equal and",
 		"opposite (Newton's 3rd law), so it only moves momentum between them.",
@@ -107,7 +107,7 @@ func _hit_lines(hit: Dictionary) -> Array:
 	]
 	return [
 		"",
-		"LAST HIT: bird (%s kg) + %s (%s kg), p in kg·m/s" % [_n(hit["bird_m"], ["m"]), hit["other_name"], String.num(hit["other_m"], 2)],
+		"LAST HIT: ball (%s kg) + %s (%s kg), p in kg·m/s" % [_n(hit["bird_m"], ["m"]), hit["other_name"], String.num(hit["other_m"], 2)],
 	] + rows + explanation + [
 		"KE %s J → %s J  (%s%% kept)" % [_n(hit["ke_before"], ["E"]), _n(hit["ke_after"], ["E"]), String.num(hit["ke_after"] / maxf(hit["ke_before"], 0.001) * 100.0, 0)],
 		"Measured elasticity e = %s (set: %s). e = 1 keeps all the KE; e = 0 makes them stick." % [String.num(hit.get("measured_e", NAN), 2) if hit.has("measured_e") else "?", String.num(PhysicsParams.elasticity, 2)],
@@ -146,7 +146,7 @@ func _compact_lines(bird: Bird) -> Array:
 	var p_after: Vector2 = info["p_after"]
 	var lost := 1.0 - p_after.length() / p_before.length() if p_before.length() > 1e-6 else 0.0   # (at rest: nothing to lose)
 	var status := "momentum conserved ✓" if absf(lost) < 0.001 else "%s%% momentum lost ✗" % String.num(lost * 100.0, 1)
-	var what := "Egg thrown" if info.get("kind") == "egg" else "Split into %d" % info["pieces"]
+	var what := "Ballast dropped" if info.get("kind") == "egg" else "Split into %d" % info["pieces"]
 	var lines := ["%s: %s,  KE %s → %s J" % [what, status, _n(info["ke_before"], ["m", "v", "E"]), _n(info["ke_after"], ["m", "v", "E"])]]
 	var total_p := Vector2.ZERO
 	for piece in bird.pieces:
@@ -157,7 +157,7 @@ func _compact_lines(bird: Bird) -> Array:
 	var t_unsplit := bird.split_t + bird.flight_time - bird.split_flight_time
 	var p_unsplit := bird.pre_split.m * Kinematics.velocity(bird.pre_split, t_unsplit)
 	lines.append("Σp pieces    (%s, %s)" % [Reveal.live(total_p.x, p_from), Reveal.live(total_p.y, p_from)])
-	lines.append("unsplit bird (%s, %s)" % [Reveal.live(p_unsplit.x, p_from), Reveal.live(p_unsplit.y, p_from)])
+	lines.append("unsplit ball (%s, %s)" % [Reveal.live(p_unsplit.x, p_from), Reveal.live(p_unsplit.y, p_from)])
 	return lines
 
 
@@ -170,19 +170,19 @@ func _split_lines(bird: Bird) -> Array:
 	var header: String
 	if info.get("kind") == "egg":
 		var masses: Array = info["masses"]
-		header = "Matilda threw a %s kg egg down at u = %s m/s (she is now %s kg)" % [String.num(masses[1], 2), String.num(info["egg_speed"], 1), String.num(masses[0], 2)]
+		header = "The Dropper threw %s kg of ballast down at u = %s m/s (it is now %s kg)" % [String.num(masses[1], 2), String.num(info["egg_speed"], 1), String.num(masses[0], 2)]
 		if info.get("straight_down", false):
-			header += "\n  and backwards, so it falls straight down: she speeds up forwards ×%s (vₓ' = vₓ·m/m_bird)" % String.num((masses[0] + masses[1]) / masses[0], 2)
+			header += "\n  and backwards, so it falls straight down: the Dropper speeds up forwards ×%s (vₓ' = vₓ·m/m_body)" % String.num((masses[0] + masses[1]) / masses[0], 2)
 	else:
-		header = "Blue bird split: %d pieces of %s kg, ±%s°" % [info["pieces"], _n(bird.mass_now(), ["m"]), String.num(info["spread"], 1)]
+		header = "Splitter split: %d pieces of %s kg, ±%s°" % [info["pieces"], _n(bird.mass_now(), ["m"]), String.num(info["spread"], 1)]
 	var lines := [
 		header,
 		"  speed     %s → %s m/s" % [_n(info["speed_before"], ["v"]), _n(info["speed_after"], ["v"])],
 		"  p before  (%s, %s)" % [_n(p_before.x, p_from), _n(p_before.y, p_from)],
 		"  p after   (%s, %s)   %s" % [_n(p_after.x, p_from), _n(p_after.y, p_from),
-			"conserved ✓" if absf(lost) < 0.001 else "%s%% lost ✗ (like the real game)" % String.num(lost * 100.0, 1)],
+			"conserved ✓" if absf(lost) < 0.001 else "%s%% lost ✗" % String.num(lost * 100.0, 1)],
 		"  KE before %s J → after %s J" % [_n(info["ke_before"], ["m", "v", "E"]), _n(info["ke_after"], ["m", "v", "E"])],
-		"  (the throw adds energy, from Matilda's muscles)" if info.get("kind") == "egg" else "  (the split adds energy, like a small explosion)",
+		"  (the throw adds energy)" if info.get("kind") == "egg" else "  (the split adds energy, like a small explosion)",
 		"",
 	]
 	# Live check: total momentum of the pieces vs. the bird that didn't split.
@@ -196,8 +196,8 @@ func _split_lines(bird: Bird) -> Array:
 	var t_unsplit := bird.split_t + bird.flight_time - bird.split_flight_time
 	var p_unsplit := bird.pre_split.m * Kinematics.velocity(bird.pre_split, t_unsplit)
 	lines.append("Now:  Σp pieces    (%s, %s)" % [Reveal.live(total_p.x, p_from), Reveal.live(total_p.y, p_from)])
-	lines.append("      unsplit bird (%s, %s)" % [Reveal.live(p_unsplit.x, p_from), Reveal.live(p_unsplit.y, p_from)])
-	lines.append("Center of mass (+) vs. unsplit bird (o): same spot")
+	lines.append("      unsplit ball (%s, %s)" % [Reveal.live(p_unsplit.x, p_from), Reveal.live(p_unsplit.y, p_from)])
+	lines.append("Center of mass (+) vs. unsplit ball (o): same spot")
 	lines.append("exactly when momentum is conserved.")
 	return lines
 

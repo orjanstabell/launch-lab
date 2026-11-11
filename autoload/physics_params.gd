@@ -17,7 +17,6 @@ signal flight_changed   # a bird launched, used its ability, or stopped followin
 signal launch_requested   # any UI can ask main to launch a bird
 signal reset_requested   # ... or to reset the level
 signal announced(text: String)   # a big message over the sky (e.g. quiz results)
-signal details_requested   # ask main to show the Formulas/details panel
 @warning_ignore("unused_signal")   # emitted by Bird
 signal bird_near_pig(bird: Bird, pig: Pig)   # a bird's proximity sensor found a pig (for the action cam)
 
@@ -45,10 +44,10 @@ const ROCKET_DEFINITIONS := {
 	"burn_rate": {"label": "Burn rate", "symbol": "ṁ", "unit": "kg/s", "default": 1.0, "min": 0.1, "max": 10.0, "step": 0.1},
 }
 
-## Matilda's egg: its mass (part of m) and how fast she throws it down, relative
+## The Dropper's egg: its mass (part of m) and how fast she throws it down, relative
 ## to herself. Momentum is conserved, so the throw kicks her up.
 const EGG_DEFINITIONS := {
-	"mass": {"label": "Egg mass", "symbol": "m_egg", "unit": "kg", "default": 0.4, "min": 0.05, "max": 9.0, "step": 0.05},
+	"mass": {"label": "Ballast mass", "symbol": "m_b", "unit": "kg", "default": 0.4, "min": 0.05, "max": 9.0, "step": 0.05},
 	"speed": {"label": "Throw speed (relative)", "symbol": "u", "unit": "m/s", "default": 15.0, "min": 1.0, "max": 60.0, "step": 0.5},
 }
 
@@ -66,8 +65,12 @@ var values := {}
 var bird_type := "red"
 var ability := {}
 var ability_on := {}
-var split := {"pieces": 3, "spread": 12.0, "conserve": true, "speed": -1.0}   # spread: ± degrees from the heading; speed: practice problems force the pieces' speed (−1 = normal)
-var target := Vector2(25.0, 2.3)   # starts on the pig (on top of the tower)
+const DEFAULT_SPLIT := {"pieces": 3, "spread": 12.0, "conserve": true, "speed": -1.0}   # spread: ± degrees from the heading; speed: practice problems force the pieces' speed (−1 = normal)
+const DEFAULT_TARGET := Vector2(25.0, 2.3)
+const DEFAULT_ELASTICITY := 0.2
+
+var split := DEFAULT_SPLIT.duplicate()
+var target := DEFAULT_TARGET
 var launch_mode := "speed"
 var spring := {}
 var rocket := {}
@@ -76,7 +79,7 @@ var collision := {}   # the last bird-hits-something snapshot (see Bird._record_
 ## How bouncy the bird's collisions are (coefficient of restitution): 0 = they
 ## stick together, 1 = perfectly elastic (no kinetic energy lost). The bird
 ## carries it; pigs, blocks and the ground add (almost) none.
-var elasticity := 0.2
+var elasticity := DEFAULT_ELASTICITY
 
 # While a practice problem is open:
 var inputs_locked := false   # the parameter panel can't change the values the problem set up
@@ -86,6 +89,12 @@ var bird: Bird = null   # the most recently launched bird, flying or not (null i
 
 
 func _init():
+	reset_to_defaults()
+
+
+## Every setting back to how the game starts. A level is loaded on top of this,
+## so nothing is left over from the level (or the fiddling) before it.
+func reset_to_defaults():
 	for key in DEFINITIONS:
 		values[key] = DEFINITIONS[key]["default"]
 	for key in ABILITY_DEFINITIONS:
@@ -99,6 +108,12 @@ func _init():
 		egg[key] = EGG_DEFINITIONS[key]["default"]
 	egg["straight_down"] = false   # true: she throws it back as well, so it falls straight down on screen
 	egg["back_speed"] = -1.0   # practice problems: throw it back at exactly this speed (m/s, relative); −1 = use straight_down
+	split = DEFAULT_SPLIT.duplicate()
+	bird_type = "red"
+	launch_mode = "speed"
+	elasticity = DEFAULT_ELASTICITY
+	target = DEFAULT_TARGET
+	values_changed.emit()
 
 
 func set_value(key: String, value: float):
@@ -190,7 +205,7 @@ func set_egg_back_speed(speed: float):
 	values_changed.emit()
 
 
-## The egg can be at most 90% of Matilda's mass.
+## The egg can be at most 90% of the Dropper's mass.
 func usable_egg_mass(bird_mass: float) -> float:
 	return minf(egg["mass"], 0.9 * bird_mass)
 
@@ -229,10 +244,6 @@ func request_launch():
 
 func request_reset():
 	reset_requested.emit()
-
-
-func request_details():
-	details_requested.emit()
 
 
 func set_inputs_locked(locked: bool, allow_manual_launch := true):

@@ -5,6 +5,7 @@ var fails := 0
 func _initialize():
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
+	main.level_data = load("res://levels/level_presets.gd").tower()   # (the game itself opens on an empty range)
 	P = root.get_node("PhysicsParams")
 	run()
 func frames(n):
@@ -47,7 +48,7 @@ func run():
 		await physics_frame
 		if P.collision.has("bird_after"): break
 	var c = P.collision
-	ok("snapshot recorded: bird hit the %s" % c.get("other_name", "?"), c.get("other_name") == "pig" and c.has("bird_after"))
+	ok("snapshot recorded: bird hit the %s" % c.get("other_name", "?"), c.get("other_name") in ["can", "drum"] and c.has("bird_after"))
 	if c.has("bird_after"):
 		var pb = c["bird_m"] * c["bird_before"] + c["other_m"] * c["other_before"]
 		var pa = c["bird_m"] * c["bird_after"] + c["other_m"] * c["other_after"]

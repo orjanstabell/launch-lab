@@ -65,7 +65,7 @@ func _draw():
 		if mode == "velocity":
 			var v := Units.to_m(pig.linear_velocity)
 			if v.length() > 0.1:
-				_arrow(pig.position, v * PX_PER_MPS, Color(VELOCITY_COLOR, fade), "v pig = %s m/s" % Reveal.num(v.length(), ["v"]), k)
+				_arrow(pig.position, v * PX_PER_MPS, Color(VELOCITY_COLOR, fade), "v can = %s m/s" % Reveal.num(v.length(), ["v"]), k)
 			continue
 		var weight := Vector2(0, -pig.mass * PhysicsParams.world_gravity())
 		var left := pig.position + Vector2(-8, 0) * k

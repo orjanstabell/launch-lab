@@ -11,7 +11,7 @@ var speed := 15.0
 
 func _init():
 	topic = "Momentum"
-	title = "Blue bird split: speed of the pieces"
+	title = "Splitter split: speed of the pieces"
 	bird_type = "blue"
 	answers = [{"label": "v'", "unit": "m/s", "min": 0.0, "max": 100.0, "step": 0.01, "key": "split_speed"}]   # the pieces fly at your v'
 	hidden_keys = ["p"]
@@ -37,7 +37,7 @@ func _cos_sum() -> float:
 
 
 func question() -> String:
-	return "A %s kg blue bird flying at %s m/s splits into %d equal pieces, fanned out evenly from −%s° to +%s°.\nHow fast must each piece fly so that momentum is conserved?\n(Check splits it at the top of its arc with your speed: watch the center of mass.)" % [n(launch["m"]), n(speed), count, n(spread), n(spread)]
+	return "A %s kg Splitter flying at %s m/s splits into %d equal pieces, fanned out evenly from −%s° to +%s°.\nHow fast must each piece fly so that momentum is conserved?\n(Check splits it at the top of its arc with your speed: watch the center of mass.)" % [n(launch["m"]), n(speed), count, n(spread), n(spread)]
 
 
 func solution_steps() -> Array[String]:
@@ -49,7 +49,7 @@ func solution_steps() -> Array[String]:
 		"m·v = Σ (m/n)·v'·cos(αᵢ)   (the sideways parts cancel, since the fan is symmetric)",
 		"Angles: %s,   Σcos(αᵢ) = %s" % [", ".join(angles), n(_cos_sum(), 4)],
 		"v' = n·v / Σcos(αᵢ) = %d·%s / %s = %s m/s" % [count, n(speed), n(_cos_sum(), 4), n(correct[0])],
-		"The mass cancels: it doesn't matter how heavy the bird is!",
+		"The mass cancels: it doesn't matter how heavy the ball is!",
 	]
 
 
@@ -73,8 +73,8 @@ func ghosts(_given: Array[float]) -> Array[Dictionary]:
 ## How the forward momentum after the split compares, as a sentence.
 func _momentum_outcome(forward_speed: float) -> String:
 	if absf(forward_speed - speed) / speed < tolerance_percent / 100.0:
-		return "Momentum conserved: the center of mass stayed with the unsplit bird"
-	return "Σp after the split was %s: the center of mass %s the unsplit bird" % [percent_off(forward_speed, speed), "ran ahead of" if forward_speed > speed else "fell behind"]
+		return "Momentum conserved: the center of mass stayed with the unsplit ball"
+	return "Σp after the split was %s: the center of mass %s the unsplit ball" % [percent_off(forward_speed, speed), "ran ahead of" if forward_speed > speed else "fell behind"]
 
 
 func outcome(given: Array[float]) -> String:

@@ -9,7 +9,7 @@ var fuel := 0.5
 
 func _init():
 	topic = "Forces"
-	title = "Rocket bird: acceleration at start and end of the burn"
+	title = "Rocket: acceleration at start and end of the burn"
 	bird_type = "rocket"
 	answers = [
 		{"label": "a start", "unit": "m/s²", "min": 0.0, "max": 1000.0, "step": 0.01},
@@ -30,7 +30,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "A %s kg rocket bird (fuel included) burns %s kg of fuel at ṁ = %s kg/s, exhaust speed v_e = %s m/s.\nWhat is the acceleration from the thrust at the start of the burn, and at the end?" % [n(launch["m"]), n(fuel), n(burn_rate), n(exhaust)]
+	return "A %s kg Rocket (fuel included) burns %s kg of fuel at ṁ = %s kg/s, exhaust speed v_e = %s m/s.\nWhat is the acceleration from the thrust at the start of the burn, and at the end?" % [n(launch["m"]), n(fuel), n(burn_rate), n(exhaust)]
 
 
 func solution_steps() -> Array[String]:

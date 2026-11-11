@@ -1,5 +1,5 @@
 extends Problem
-## Momentum, predict: Matilda throws her egg down and recoils up. How big is the kick?
+## Momentum, predict: the Dropper throws her egg down and recoils up. How big is the kick?
 
 const THROW_AT := 0.5   # seconds after launch
 
@@ -9,7 +9,7 @@ var throw_speed := 15.0
 
 func _init():
 	topic = "Momentum"
-	title = "Matilda: the kick from throwing her egg"
+	title = "Dropper: the kick from throwing the ballast"
 	bird_type = "matilda"
 	answers = [{"label": "kick Δv", "unit": "m/s", "min": 0.0, "max": 100.0, "step": 0.01}]
 	hidden_keys = ["v", "p"]
@@ -26,17 +26,17 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "Matilda weighs %s kg with her egg. She throws the %s kg egg straight down at %s m/s relative to herself.\nHow much does her upward speed change? (Check: she throws it %s s into the flight, next to a ghost with your kick.)" % [n(launch["m"]), n(egg_mass), n(throw_speed), n(THROW_AT, 1)]
+	return "The Dropper weighs %s kg with its ballast. It throws the %s kg ballast straight down at %s m/s relative to itself.\nHow much does its upward speed change? (Check: it throws at %s s into the flight, next to a ghost with your kick.)" % [n(launch["m"]), n(egg_mass), n(throw_speed), n(THROW_AT, 1)]
 
 
 func solution_steps() -> Array[String]:
 	var bird_mass: float = launch["m"] - egg_mass
 	return [
-		"The throw is instant, so momentum is conserved:  m_egg·Δv_egg + m_bird·Δv_bird = 0",
-		"The egg leaves at u relative to her:  Δv_egg − Δv_bird = u (downwards)",
-		"Together:  Δv_bird = (m_egg / m)·u  upwards,  Δv_egg = (m_bird / m)·u  downwards",
-		"Δv_bird = %s / %s · %s = %s m/s up" % [n(egg_mass), n(launch["m"]), n(throw_speed), n(correct[0])],
-		"(The egg gets %s m/s extra downwards: the lighter one gets the bigger change.)" % n(bird_mass / launch["m"] * throw_speed),
+		"The throw is instant, so momentum is conserved:  m_ballast·Δv_ballast + m_body·Δv_body = 0",
+		"The ballast leaves at u relative to the Dropper:  Δv_ballast − Δv_body = u (downwards)",
+		"Together:  Δv_body = (m_ballast / m)·u  upwards,  Δv_ballast = (m_body / m)·u  downwards",
+		"Δv_body = %s / %s · %s = %s m/s up" % [n(egg_mass), n(launch["m"]), n(throw_speed), n(correct[0])],
+		"(The ballast gets %s m/s extra downwards: the lighter one gets the bigger change.)" % n(bird_mass / launch["m"] * throw_speed),
 	]
 
 

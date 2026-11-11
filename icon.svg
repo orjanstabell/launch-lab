@@ -18,24 +18,15 @@
     <path d="M22 81 L14 68"/>
     <path d="M22 81 L30 68"/>
   </g>
-  <!-- The red bird, facing right -->
+  <!-- The Plain ball, facing right -->
   <g transform="translate(86 58)">
-    <path d="M-27 -2 L-40 -12 L-38 -4 L-41 4 L-27 6 Z" fill="#100d0d"/>
-    <circle cx="-6" cy="-27" r="7" fill="#100d0d"/>
-    <circle cx="4" cy="-29" r="6" fill="#100d0d"/>
-    <circle cx="-6" cy="-27" r="5" fill="#d6002e"/>
-    <circle cx="4" cy="-29" r="4" fill="#d6002e"/>
-    <circle r="28" fill="#100d0d"/>
-    <circle r="25" fill="#d6002e"/>
-    <path d="M-21 13 Q0 3 21 13 Q14 24 0 25 Q-14 24 -21 13 Z" fill="#e3c7a8"/>
-    <circle cx="5" cy="-4" r="6.5" fill="#100d0d"/>
-    <circle cx="5" cy="-4" r="5" fill="#ffffff"/>
-    <circle cx="7" cy="-4" r="2.2" fill="#100d0d"/>
-    <circle cx="16" cy="-4" r="5.5" fill="#100d0d"/>
-    <circle cx="16" cy="-4" r="4" fill="#ffffff"/>
-    <circle cx="17.5" cy="-4" r="1.8" fill="#100d0d"/>
-    <path d="M1 -14 L12 -9 L24 -14 L25 -10 L12 -5 L1 -10 Z" fill="#100d0d"/>
-    <path d="M9 3 L16 1 L31 7 L11 9 Z" fill="#ffb81a" stroke="#100d0d" stroke-width="1.5" stroke-linejoin="round"/>
-    <path d="M11 9 L27 9 L14 14 Z" fill="#f28c0d" stroke="#100d0d" stroke-width="1.5" stroke-linejoin="round"/>
+    <circle r="28" fill="#17171f"/>
+    <circle r="24" fill="#1aa899"/>
+    <circle cx="7" cy="-5" r="9" fill="#17171f"/>
+    <circle cx="7" cy="-5" r="7.5" fill="#ffffff"/>
+    <circle cx="10" cy="-5" r="3.4" fill="#17171f"/>
+    <circle cx="18" cy="-5" r="7.5" fill="#17171f"/>
+    <circle cx="18" cy="-5" r="6" fill="#ffffff"/>
+    <circle cx="20.3" cy="-5" r="2.7" fill="#17171f"/>
   </g>
 </svg>

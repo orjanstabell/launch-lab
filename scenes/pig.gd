@@ -1,12 +1,14 @@
 class_name Pig
 extends RigidBody2D
-## The target. Dies when something hits it hard enough; a big pig survives one hit.
+## The target: a can (the big one is a drum). Knocked out when something hits it
+## hard enough; a drum survives one hit. (The code still calls it a pig.)
 ## "Hard enough" = the impulse it receives in one physics step is above its
 ## threshold. Impulse = change in momentum, Δp = m·Δv (kg·m/s), so we measure it
 ## straight from how much the pig's velocity changed. A heavier or faster hit
 ## counts more, and so does a fall: landing from the tower is a hit from the ground.
 
 signal died
+signal dented   # a drum took a hit it survives
 
 const RADIUS_M := 0.4
 const BIG_RADIUS_M := 0.6
@@ -15,7 +17,12 @@ const BIG_KILL_IMPULSE := 4.0
 const GRACE_TIME := 0.5   # ignore hits right after spawning, while the level settles
 const HURT_TIME := 0.4   # after a hit it survives, one hit can't count twice
 const FADE_TIME := 0.5   # how long a defeated pig takes to fade away
-const BIG_MASS := 3.0   # default; levels can set their own (Levels tab: "big pig mass")
+const INK := Color(0.09, 0.09, 0.12)
+const CAN_METAL := Color(0.82, 0.84, 0.88)
+const CAN_STRIPE := Color(0.86, 0.22, 0.2)
+const DRUM_METAL := Color(0.55, 0.62, 0.72)
+const DRUM_STRIPE := Color(0.98, 0.78, 0.15)
+const BIG_MASS := 3.0   # default; levels can set their own (Levels tab: "drum mass")
 
 var big := false
 var radius_m := RADIUS_M
@@ -26,6 +33,10 @@ var _age := 0.0
 var _dead := false
 var _hurt_for := 0.0
 var _last_velocity := Vector2.ZERO   # m/s, from the previous physics step
+var _crumple := 0.0:   # 0 → 1 while a knocked-out can flattens
+	set(value):
+		_crumple = value
+		queue_redraw()
 ## The force from contact (not gravity) this physics step, in newtons:
 ## F = m·Δv/Δt − m·g. Resting on the ground it's m·g upwards: the normal force.
 var contact_force := Vector2.ZERO
@@ -83,7 +94,8 @@ func take_impulse(impulse: float):
 	hits_left -= 1
 	if hits_left > 0:
 		_hurt_for = HURT_TIME
-		queue_redraw()   # now wearing a bandage
+		queue_redraw()   # now dented
+		dented.emit()
 		return
 	_dead = true
 	_die.call_deferred()
@@ -96,23 +108,31 @@ func _die():
 	collision_mask = Layers.GROUND
 	died.emit()
 	var tween := create_tween()
-	tween.tween_property(self, "modulate:a", 0.0, FADE_TIME)
+	tween.tween_property(self, "_crumple", 1.0, FADE_TIME * 0.4)
+	tween.parallel().tween_property(self, "modulate:a", 0.0, FADE_TIME)
 	tween.tween_callback(queue_free)
 
 
 func _draw():
 	var r := radius_m * Units.PIXELS_PER_METER
-	draw_circle(Vector2.ZERO, r, Color(0.4, 0.72, 0.22) if big else Color(0.45, 0.8, 0.25))
-	draw_circle(Vector2(0, r * 0.15), r * 0.35, Color(0.35, 0.65, 0.18))   # snout
-	draw_circle(Vector2(-r * 0.12, r * 0.15), r * 0.08, Color(0.15, 0.3, 0.05))
-	draw_circle(Vector2(r * 0.12, r * 0.15), r * 0.08, Color(0.15, 0.3, 0.05))
-	for side in [-1, 1]:
-		draw_circle(Vector2(side * r * 0.4, -r * 0.35), r * 0.18, Color.WHITE)
-		draw_circle(Vector2(side * r * 0.4, -r * 0.35), r * 0.08, Color.BLACK)
-	if big and hits_left < 2:   # took a hit: a bandage on the forehead
-		var band := Rect2(-r * 0.45, -r * 0.8, r * 0.9, r * 0.22)
-		draw_set_transform(Vector2.ZERO, 0.4)
-		draw_rect(band, Color(0.95, 0.9, 0.8))
-		draw_set_transform(Vector2.ZERO, -0.4)
-		draw_rect(band, Color(0.95, 0.9, 0.8))
-		draw_set_transform(Vector2.ZERO)
+	var line := maxf(0.11 * r, 2.0)
+	# Knocked out: it crumples flat onto the ground (squashed along the world's
+	# up-down, whichever way it had rolled) while it fades.
+	if _crumple > 0.0:
+		draw_set_transform(Vector2(0, r * 0.85 * _crumple).rotated(-rotation), -rotation, Vector2(1.0 + 0.35 * _crumple, 1.0 - 0.85 * _crumple))
+	# A can seen end-on (the big one is a drum): a metal disc with a rim, and a
+	# bold stripe across it, so you can see it roll. No face: it's a target.
+	draw_circle(Vector2.ZERO, r + line * 0.5, INK)
+	draw_circle(Vector2.ZERO, r - line * 0.5, DRUM_METAL if big else CAN_METAL)
+	draw_arc(Vector2.ZERO, r * 0.7, 0.0, TAU, 32, INK, line * 0.5, true)
+	var stripe := r * (0.3 if big else 0.36)
+	draw_line(Vector2(-r + line, 0), Vector2(r - line, 0), DRUM_STRIPE if big else CAN_STRIPE, stripe)
+	if big:
+		for side in [-1.0, 1.0]:
+			draw_line(Vector2(-r * 0.8, side * r * 0.5), Vector2(r * 0.8, side * r * 0.5), INK, line * 0.5)
+	if big and hits_left < 2:   # took a hit: a flat dent on one side, which stays
+		var dent := PackedVector2Array()
+		for i in 9:
+			dent.append(Vector2.from_angle(lerpf(-0.75, 0.75, i / 8.0) - PI / 2.0) * (r + line * 0.6))
+		draw_colored_polygon(dent, INK)
+	draw_set_transform(Vector2.ZERO)

@@ -3,12 +3,17 @@ extends Node2D
 ## The path the bird actually took, drawn in segments:
 ##   each formula segment gets its own blue/purple shade, with a yellow ring
 ##   where Activate started it; orange is after Godot physics took over.
+## On top of the line, a dot every STAMP_INTERVAL seconds of formula flight, like
+## a strobe photo: equal gaps sideways (vx is constant), growing gaps down (g).
+## The dots land exactly on the white prediction dots, which use the same step.
 
 const FORMULA_COLORS := [Color(0.15, 0.35, 0.95), Color(0.6, 0.2, 0.85), Color(0.0, 0.6, 0.65)]
 const PHYSICS_COLOR := Color(1.0, 0.5, 0.1)
 const MARKER_COLOR := Color(1.0, 0.85, 0.2)
+const STAMP_INTERVAL := 0.1   # seconds (the same as TrajectoryPreview.DOT_INTERVAL)
 
 var _segments := []   # each: {"points": PackedVector2Array, "color": Color, "marker": bool}
+var _stamps := []   # each: {"point": Vector2, "color": Color}
 var _formula_segment_count := 0
 var _drawn_zoom := 0.0
 
@@ -20,6 +25,7 @@ func _process(_delta: float):
 
 func clear():
 	_segments.clear()
+	_stamps.clear()
 	_formula_segment_count = 0
 	queue_redraw()
 
@@ -42,6 +48,12 @@ func add_point(point: Vector2):
 		queue_redraw()
 
 
+## Where the bird was at one tick of the strobe.
+func add_stamp(point: Vector2):
+	_stamps.append({"point": point, "color": _segments[-1]["color"]})
+	queue_redraw()
+
+
 func _start_segment(start: Vector2, color: Color, marker: bool):
 	_segments.append({"points": PackedVector2Array([start]), "color": color, "marker": marker})
 	queue_redraw()
@@ -53,6 +65,9 @@ func _draw():
 	for segment in _segments:
 		var points: PackedVector2Array = segment["points"]
 		if points.size() >= 2:
-			draw_polyline(points, segment["color"], 3.0 * k, true)
+			draw_polyline(points, segment["color"], 4.0 * k, true)
 		if segment["marker"]:
 			draw_arc(points[0], 12.0 * k, 0.0, TAU, 24, MARKER_COLOR, 3.0 * k, true)
+	for stamp in _stamps:
+		draw_circle(stamp["point"], 6.5 * k, Color.WHITE)
+		draw_circle(stamp["point"], 4.5 * k, stamp["color"])

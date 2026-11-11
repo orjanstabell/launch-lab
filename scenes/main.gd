@@ -19,8 +19,13 @@ extends Node2D
 ## Topics (Motion, Forces, ...) each bring a panel in the dock and overlays in
 ## the world. Only one is shown at a time; switch with the tabs or number keys.
 ##
-## The level (blocks and pigs) is built from level_data, a plain Dictionary (see
+## The level (blocks and cans) is built from level_data, a plain Dictionary (see
 ## Level). The Levels tab loads, saves and edits it; editing goes through `editor`.
+## The game opens on an empty range.
+##
+## Lecture cues (LevelPresets.cues()) are levels that ask one question. PageDown
+## (a presenter clicker's key) walks through them: load the cue with the future
+## hidden, fly it, show its reveal line, next cue. PageUp asks the same cue again.
 
 const ORIGIN_PX := Vector2(160, 690)   # where x = 0 m, y = 0 m appears on screen (at zoom 1 / Fit)
 const SCREEN_SIZE := Vector2(1920, 1080)
@@ -38,6 +43,10 @@ const ACTION_SLOW := 0.12   # time scale during the action cam
 const ACTION_AFTER_HIT_MS := 1500   # real milliseconds to keep watching after the hit
 const ACTION_MAX_MS := 6000
 const MAX_DRAG_M := 2.0   # the furthest you can pull the bird back
+const CUE_KEY_GAP_MS := 250   # a second cue key this soon is a clicker's double press: ignored
+const CUE_REVEAL_AFTER_ABILITY := 1.5   # seconds a cue's scripted ability is watched before the reveal
+
+enum CueStage { ASKED, FLOWN, REVEALED }
 
 var world: Node2D
 var level: Node2D   # blocks and pig, rebuilt on reset
@@ -45,7 +54,16 @@ var slingshot: Slingshot
 var trails: Node2D   # this shot's trail(s): one per bird, more after a blue bird split
 var birds: Node2D   # this shot's bird(s)
 var topics: Array[Topic] = [MotionTopic.new(), ForcesTopic.new(), EnergyTopic.new(), PracticeTopic.new(), LevelsTopic.new(), EditorTopic.new()]
-var level_data: Dictionary = LevelPresets.tower()
+var level_data: Dictionary = LevelPresets.open_range()
+var shots := 0   # launches since the level was set up
+var shot_marks: ShotMarks   # the miss as a tape measure; where a cue's ability will fire
+var cue_index := -1   # which lecture cue is loaded (−1: none)
+var cue_stage := CueStage.ASKED
+var cue_big: Label   # the cue's question, then its reveal line: centered, over the sky
+var cue_small: Label   # the cue's answer options, under the question
+var _cue_reveal_at := INF   # flight time at which a flying cue shows its reveal (INF: when it lands)
+var _cue_key_ms := -CUE_KEY_GAP_MS
+var _miss_checked: Bird   # the shot whose miss has been measured
 var editor: LevelEditor
 var level_title: Label   # the level's name, over the sky...
 var banner: Label   # ...and its task, under the name
@@ -86,11 +104,11 @@ func _ready():
 	PhysicsParams.flight_changed.connect(_apply_gravity_to_world)
 	PhysicsParams.launch_requested.connect(launch)
 	PhysicsParams.reset_requested.connect(reset_level)
-	PhysicsParams.details_requested.connect(set_show_details.bind(true))
 	PhysicsParams.bird_near_pig.connect(_on_bird_near_pig)
 	PhysicsParams.announced.connect(func(text): message.text = text)
 	PhysicsParams.values_changed.connect(_refresh_main_button)
 	PhysicsParams.flight_changed.connect(_refresh_main_button)
+	PhysicsParams.flight_changed.connect(_measure_miss)
 	_apply_gravity_to_world()
 	_refresh_main_button()
 
@@ -98,7 +116,8 @@ func _ready():
 func _process(delta: float):
 	# The slingshot shows a waiting bird unless one is currently flying.
 	slingshot.loaded = not PhysicsParams.is_flying()
-	hint.visible = not launched_once and PhysicsParams.manual_launch_allowed and not editor.active and message.text == ""
+	hint.visible = not launched_once and PhysicsParams.manual_launch_allowed and not editor.active and message.text == "" and not is_cue()
+	_update_cue()
 	_update_action_cam()
 	_update_camera(delta)
 
@@ -139,7 +158,14 @@ func _unhandled_input(event: InputEvent):
 		KEY_ENTER, KEY_KP_ENTER:
 			PhysicsParams.activate()
 		KEY_R:
-			reset_level()
+			if is_cue() and PhysicsParams.show_level:
+				load_level(level_data)   # the cue as it was asked: its values, and the future hidden again
+			else:
+				reset_level()
+		KEY_PAGEDOWN, KEY_RIGHT:
+			cue_key(true)
+		KEY_PAGEUP, KEY_LEFT:
+			cue_key(false)
 		KEY_D:
 			set_show_details(not show_details)
 		KEY_H, KEY_F1:
@@ -186,7 +212,7 @@ func _update_drag(mouse: Vector2):
 	slingshot.drag_offset = -pull   # the bird sits behind the launch point, where you pulled it
 
 
-## Space, or the big button. Like tapping in Angry Birds: use the ability mid-air
+## Space, or the big button. Use the ability mid-air
 ## if the flying bird still has one, otherwise launch the next bird. (So a bird
 ## that's used its ability and is still far off-screen never blocks the next launch.)
 func space_action():
@@ -217,12 +243,128 @@ func _refresh_main_button():
 
 func launch():
 	launched_once = true
+	shots += 1
+	message.text = ""   # (the last shot's result)
 	_clear_shot()
 	var trail := Trail.new()
 	trails.add_child(trail)
 	bird = Bird.new()
 	bird.setup(PhysicsParams.values, PhysicsParams.bird_type, trail)
 	birds.add_child(bird)
+	if is_cue() and PhysicsParams.show_level and cue_stage == CueStage.ASKED:
+		_fly_cue()
+
+
+# --- Lecture cues ---
+
+## Is the loaded level a lecture cue (a level that asks a question)?
+func is_cue() -> bool:
+	return level_data.has("question")
+
+
+## PageDown / PageUp (and the arrow keys: some clickers send those).
+## Forward does the cue's next step: fly it, reveal it, load the next cue.
+## Back asks the same cue again, or goes to the one before if it hasn't flown yet.
+func cue_key(forward: bool):
+	var now := Time.get_ticks_msec()
+	if editor.active or now - _cue_key_ms < CUE_KEY_GAP_MS:
+		return
+	_cue_key_ms = now
+	if not PhysicsParams.show_level:   # a practice problem is open: leave it first, so it puts its settings back
+		show_topic(0)
+	var cues := LevelPresets.cues()
+	if not forward:
+		if cue_index < 0:
+			return
+		if cue_stage != CueStage.ASKED:
+			load_level(cues[cue_index])
+		else:
+			load_level(cues[cue_index - 1] if cue_index > 0 else LevelPresets.open_range())
+		return
+	if PhysicsParams.is_flying() and get_tree().paused:   # it stopped itself at the top: carry on
+		get_tree().paused = false
+	elif PhysicsParams.is_flying() and cue_stage != CueStage.REVEALED:
+		pass   # never wipe a shot the class is watching
+	elif cue_index >= 0 and cue_stage == CueStage.ASKED:
+		player_launch()
+	elif cue_index >= 0 and cue_stage == CueStage.FLOWN:
+		_reveal_cue()
+	else:
+		load_level(cues[cue_index + 1] if cue_index + 1 < cues.size() else LevelPresets.open_range())
+
+
+## The flight time at which the cue's ability fires by itself (INF: it doesn't).
+func _cue_ability_time() -> float:
+	var at: Variant = level_data.get("activate_at")
+	if at is String and at == "apex":
+		return Kinematics.time_to_apex(PhysicsParams.launch_params())
+	return float(at) if at is float or at is int else INF
+
+
+## The cue's shot has just been launched: script its ability and its stop.
+func _fly_cue():
+	cue_stage = CueStage.FLOWN
+	bird.activate_at = _cue_ability_time()
+	_cue_reveal_at = bird.activate_at + CUE_REVEAL_AFTER_ABILITY
+	if level_data.get("stop_at_apex", false) == true:
+		bird.pause_at = Kinematics.time_to_apex(PhysicsParams.launch_params())
+		bird.auto_stopped.connect(_reveal_cue)
+	update_banner()
+
+
+## A flown cue reveals itself when its shot ends (or a moment after its ability
+## fired), unless it waits for PageDown.
+func _update_cue():
+	if cue_stage != CueStage.FLOWN or not is_cue() or level_data.get("reveal_on_key", false) == true:
+		return
+	if not is_instance_valid(bird) or bird.state != Bird.State.FLYING or bird.flight_time >= _cue_reveal_at:
+		_reveal_cue()
+
+
+## Show the cue's reveal line and everything that was hidden (the dotted
+## prediction then lies on the path the shot really took).
+func _reveal_cue():
+	if cue_stage == CueStage.REVEALED:
+		return
+	cue_stage = CueStage.REVEALED
+	Reveal.show_all()
+	update_banner()
+
+
+## The ring that shows where a cue's ability will fire.
+func _mark_cue_ability():
+	var at := _cue_ability_time()
+	if is_cue() and PhysicsParams.show_level and not is_inf(at):
+		shot_marks.show_ring(Units.to_px(Kinematics.position(PhysicsParams.launch_params(), at)), level_data.get("mark", "here"))
+
+
+# --- The miss, in meters ---
+
+## When a shot comes down on the ground with cans still standing, measure how
+## close its path came to the nearest one: that distance is the number to beat.
+## (Not after hitting a block: the tower may still fall. Not for a split: a piece may still hit.)
+func _measure_miss():
+	if not is_instance_valid(bird) or bird == _miss_checked or bird.state != Bird.State.PHYSICS:
+		return
+	_miss_checked = bird
+	if not PhysicsParams.show_level or editor.active or not bird.pieces.is_empty() or PhysicsParams.collision.get("bird") == bird:
+		return
+	var nearest := {}
+	for can: Pig in get_tree().get_nodes_in_group("pigs"):
+		var closest := Kinematics.closest_approach(bird.segment, Units.to_m(can.position))   # (time, distance)
+		if nearest.is_empty() or closest.y < nearest["distance"]:
+			nearest = {"can": can, "time": minf(closest.x, bird.t), "distance": closest.y}
+	if nearest.is_empty():
+		return
+	var can: Pig = nearest["can"]
+	var passed := Kinematics.position(bird.segment, nearest["time"])
+	var target := Units.to_m(can.position)
+	var how := "passed above" if passed.y > target.y else "passed below"
+	if nearest["time"] >= bird.t - 0.02:   # it was closest when it came down
+		how = "landed short of" if passed.x < target.x else "landed beyond"
+	var distance := "%s m" % String.num(nearest["distance"], 1)
+	message.text = "Missed by %s: %s the %s." % [distance, how, "drum" if can.big else "can"]
+	shot_marks.show_miss(Units.to_px(passed), can.position, distance)
 
 
 func show_topic(index: int):
@@ -248,6 +390,8 @@ func set_fullscreen(on: bool):
 
 func reset_level():
 	get_tree().paused = false   # a fresh start runs (slow motion stays as it is)
+	shots = 0
+	cue_stage = CueStage.ASKED
 	_clear_shot()
 	if is_instance_valid(level):
 		level.queue_free()
@@ -256,14 +400,20 @@ func reset_level():
 
 
 ## Load a level: its objects, its settings (launch values, bird, hidden
-## values...) and its topic. Shows its name and task over the sky.
+## values...) and its topic. Shows its name and task over the sky. The view
+## starts fresh too (normal speed, Fit, no action cam, no formulas), so a level
+## looks the same whatever was on screen before it.
 func load_level(data: Dictionary):
 	level_data = data.duplicate(true)
 	editor.data = level_data
+	cue_index = LevelPresets.cues().map(func(cue): return cue["name"]).find(level_data.get("name", "")) if is_cue() else -1
 	Level.apply_settings(level_data)
+	sim_controls.reset_view()
+	set_show_details(false)
 	reset_level()
 	show_topic(clampi(level_data.get("topic", 0), 0, topics.size() - 1))
 	update_banner()
+	_mark_cue_ability()
 
 
 func update_banner():
@@ -272,6 +422,23 @@ func update_banner():
 		task = ""
 	banner.text = task
 	level_title.text = level_data.get("name", "") if task != "" else ""
+	# A cue asks its question big, in the middle. Once it flies, the question
+	# moves up to the right (out of the arc's way), and the reveal takes the middle.
+	var cue := is_cue() and PhysicsParams.show_level
+	var asked := cue_stage == CueStage.ASKED
+	cue_big.text = ""
+	cue_small.text = ""
+	if cue:
+		var question: String = level_data["question"]
+		var options: String = level_data.get("options", "")
+		cue_big.text = question if asked else ""
+		cue_small.text = options if asked else ""
+		level_title.text = "" if asked else question
+		banner.text = "" if asked else options
+		if cue_stage == CueStage.REVEALED:
+			cue_big.text = String(level_data.get("reveal", "")).replace("{g}", String.num(PhysicsParams.values["g"], 2))
+	cue_big.visible = cue_big.text != ""
+	cue_small.visible = cue_small.text != ""
 
 
 ## Start or stop editing the level. Stopping rebuilds it with live physics.
@@ -284,6 +451,7 @@ func set_editing(on: bool):
 ## Removes the last shot's bird(s) and trail(s) (and ends the action cam).
 func _clear_shot():
 	_end_action_cam()
+	shot_marks.clear()
 	for node in birds.get_children() + trails.get_children():
 		node.set_physics_process(false)   # freed at the end of this frame; stop it touching the trails now
 		node.queue_free()
@@ -437,6 +605,9 @@ func _build_world():
 	world.add_child(slingshot)
 	birds = Node2D.new()   # the level gets placed just before this, so birds draw over blocks
 	world.add_child(birds)
+	shot_marks = ShotMarks.new()
+	shot_marks.process_mode = Node.PROCESS_MODE_ALWAYS
+	world.add_child(shot_marks)
 	action_overlay = ActionCamOverlay.new()
 	action_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
 	action_overlay.visible = false
@@ -453,8 +624,7 @@ func _build_world():
 	add_child(camera)
 
 
-## Build the blocks and pigs from level_data. (The default level is a small
-## tower with the pig on top; the default shot falls a little short of it.)
+## Build the blocks and cans from level_data.
 func _build_level():
 	level = Node2D.new()
 	world.add_child(level)
@@ -471,13 +641,18 @@ func _build_level():
 		var pig := Pig.new(pig_data.get("big", false), pig_data.get("mass", 0.0))
 		pig.position = Units.to_px(Vector2(pig_data["x"], pig_data["y"]))
 		pig.freeze = editor.active
-		pig.died.connect(_on_pig_died)
+		pig.died.connect(_on_pig_died.bind(pig.big))
+		pig.dented.connect(func(): message.text = "Drum dented.  One more hit.")
 		level.add_child(pig)
 
 
-func _on_pig_died():
-	var left := get_tree().get_nodes_in_group("pigs").size()   # (a defeated pig leaves the group)
-	message.text = "All pigs down!  Press R to play again." if left <= 0 else "Pig down!  %d to go." % left
+func _on_pig_died(big: bool):
+	var left := get_tree().get_nodes_in_group("pigs").size()   # (a knocked-out can leaves the group)
+	shot_marks.clear()   # (a shot that landed short can still roll into one)
+	if left <= 0:
+		message.text = "All down in %d shot%s.  R to reset." % [shots, "" if shots == 1 else "s"]
+	else:
+		message.text = "%s down.  %d to go." % ["Drum" if big else "Can", left]
 
 
 func _build_ui():
@@ -494,11 +669,6 @@ func _build_ui():
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.theme = UiTheme.make()
 	layer.add_child(root)
-
-	# Formulas/explanations: float over the top-left of the sky, only when switched on.
-	for topic in topics:
-		topic.details.position = Vector2(20, 20)
-		root.add_child(topic.details)
 
 	# The dock: a strip under the ground with three columns.
 	var dock := PanelContainer.new()
@@ -542,7 +712,7 @@ func _build_ui():
 	main_button = Button.new()
 	main_button.custom_minimum_size = Vector2(0, 50)
 	main_button.focus_mode = Control.FOCUS_NONE   # (Space is its key)
-	main_button.tooltip_text = "Launch the next bird; in the air, use its ability (Space)"
+	main_button.tooltip_text = "Launch; in the air, use the ability (Space)"
 	main_button.add_theme_font_override("font", UiTheme.bold())
 	main_button.add_theme_font_size_override("font_size", 22)
 	main_button.pressed.connect(space_action)
@@ -573,18 +743,24 @@ func _build_ui():
 	help_button.pressed.connect(func(): help.visible = not help.visible)
 	hide_row.add_child(help_button)
 
+	# Over the middle of the sky, from the top: a cue's question and options (or
+	# its reveal), then the message (hits, misses, practice verdicts), then the hint.
+	var sky_box := VBoxContainer.new()
+	sky_box.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	sky_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	sky_box.offset_top = 96   # under the level's name and task (top right), which a long task can stretch
+	sky_box.add_theme_constant_override("separation", 2)
+	sky_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(sky_box)
+	cue_big = _sky_label(52, 10)   # big enough for the back row
+	cue_big.add_theme_font_override("font", UiTheme.bold())
+	cue_small = _sky_label(34, 8)
 	message = _sky_label(40, 8)
-	message.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	message.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	message.position.y = 96   # under the level's name and task (top right), which a long task can stretch
-	root.add_child(message)
-
 	hint = _sky_label(22, 6)
-	hint.text = "Drag the bird to aim  ·  Space to launch  ·  H for help"
-	hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	hint.position.y = 104
-	root.add_child(hint)
+	hint.text = "Drag to aim  ·  Space to launch  ·  PageDown: lecture cues  ·  H for help"
+	for label in [cue_big, cue_small, message, hint]:
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		sky_box.add_child(label)
 
 	# The level's name and task, top right: the name big, so the goal reads first.
 	var banner_box := VBoxContainer.new()
@@ -602,6 +778,10 @@ func _build_ui():
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	banner_box.add_child(banner)
 	update_banner()
+	# Formulas/explanations, only when switched on: under the name, so the slingshot's side of the sky stays clear.
+	for topic in topics:
+		topic.details.size_flags_horizontal = Control.SIZE_SHRINK_END
+		banner_box.add_child(topic.details)
 
 	help = _make_help()
 	root.add_child(help)
@@ -650,13 +830,14 @@ func _make_help() -> PanelContainer:
 	grid.add_theme_constant_override("v_separation", 6)
 	box.add_child(grid)
 	for row in [
-		["Drag the bird", "aim and pull back; let go to launch"],
-		["Space", "launch; in the air, use the bird's ability"],
+		["Drag", "aim and pull back; let go to launch"],
+		["Space", "launch; in the air, use the ability"],
 		["R", "reset the level"],
+		["PageDown  /  PageUp", "lecture cues: next step  /  ask again (a clicker's keys; ← → work too)"],
 		["P  /  F", "pause  /  one physics step while paused"],
 		["S", "slow motion: 1×, 0.5×, 0.25×, 0.1×"],
-		["Z", "zoom: fit the arc, or follow the bird at 2× / 3×"],
-		["C", "action cam near a pig: forces, velocities, momentum, off"],
+		["Z", "zoom: fit the arc, or follow the ball at 2× / 3×"],
+		["C", "action cam near a can: forces, velocities, momentum, off"],
 		["D", "formulas and explanations over the sky"],
 		["1 – %d" % topics.size(), "tabs"],
 		["Right-click", "move the target for Solve (Motion tab)"],
@@ -672,7 +853,7 @@ func _make_help() -> PanelContainer:
 		what.text = row[1]
 		grid.add_child(what)
 	var dock_guide := Label.new()
-	dock_guide.text = "The dock:  left, what the tab shows  ·  middle, the launch and the bird  ·  right, run and view.\nHover over any control for more; D shows the formulas behind what's on screen."
+	dock_guide.text = "The dock:  left, what the tab shows  ·  middle, the launch and the ball  ·  right, run and view.\nHover over any control for more; D shows the formulas behind what's on screen."
 	dock_guide.add_theme_color_override("font_color", UiTheme.TEXT_DIM)
 	dock_guide.add_theme_font_size_override("font_size", 16)
 	box.add_child(dock_guide)

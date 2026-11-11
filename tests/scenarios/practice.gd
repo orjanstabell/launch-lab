@@ -6,6 +6,7 @@ var fails := 0
 func _initialize():
 	main = load("res://scenes/main.tscn").instantiate()
 	root.add_child(main)
+	main.level_data = load("res://levels/level_presets.gd").tower()   # (the game itself opens on an empty range)
 	P = root.get_node("PhysicsParams")
 	R = root.get_node("Reveal")
 	run()
@@ -32,7 +33,7 @@ func run():
 	main.show_topic(3)
 	var panel = main.find_children("*", "PracticePanel", true, false)[0]
 	# Control, two unknowns: two pigs
-	pick(panel, "Two pigs"); panel.new_problem()
+	pick(panel, "Two cans"); panel.new_problem()
 	await frames(5)
 	ok("problem open: inputs locked, no tower, unknowns hidden", P.inputs_locked and main.level.get_child_count() == 0 and R.is_hidden("v0") and R.is_hidden("theta"))
 	ok("manual launch blocked", not P.manual_launch_allowed)
@@ -43,9 +44,9 @@ func run():
 	ok("right two-pig answer: '%s'" % main.message.text, main.message.text == "✓ Hit them all!")
 	ok("answer still not shown", not panel._feedback.text.begins_with("Answer"))
 	panel.show_solution()
-	ok("Show solution: answer, solution flag, details on", String.num(c[0], 2) in panel._feedback.text and panel.solution_shown and main.show_details)
+	ok("Show solution: answer, solution flag, formulas stay closed", String.num(c[0], 2) in panel._feedback.text and panel.solution_shown and not main.show_details)
 	# Yellow tap, flown for real with a scheduled tap
-	pick(panel, "Yellow bird"); panel.new_problem()
+	pick(panel, "Gravity off"); panel.new_problem()
 	await frames(5)
 	await answer_and_check(panel, [snappedf(panel.problem.correct[0], 0.01)])
 	var trail_ok = main.bird.activations == 1
@@ -56,10 +57,10 @@ func run():
 	await frames(5)
 	ok("predict: path hidden", R.is_hidden("predict"))
 	await answer_and_check(panel, [panel.problem.correct[0] * 1.2])
-	ok("predict wrong: '%s' / '%s'" % [main.message.text, panel._feedback.text], main.message.text.begins_with("✗ Not quite") and "short of your flag" in main.message.text and "too high" in panel._feedback.text)
+	ok("predict wrong: '%s' / '%s'" % [main.message.text, panel._feedback.text], main.message.text.begins_with("✗ 20 % high") and "short of your flag" in main.message.text and "call 1" in panel._feedback.text)
 	await answer_and_check(panel, [snappedf(panel.problem.correct[0], 0.01)])
 	print("      after right predict: msg=%s bird_valid=%s fb=%s correct=%f" % [main.message.text, is_instance_valid(main.bird), panel._feedback.text, panel.problem.correct[0]])
-	ok("predict right + bird flies, verdict after landing", main.message.text.begins_with("✓ Correct!") and is_instance_valid(main.bird) and main.bird.flight_time > 0.5)
+	ok("predict right + bird flies, verdict after landing", main.message.text.begins_with("✓ Correct on call 2") and is_instance_valid(main.bird) and main.bird.flight_time > 0.5)
 	# Random kind
 	for i in panel._picker.item_count:
 		if panel._picker.get_item_text(i) == "Random: Momentum": panel._picker.select(i)

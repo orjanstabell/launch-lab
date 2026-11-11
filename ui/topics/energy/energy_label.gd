@@ -33,8 +33,8 @@ func _build_lines() -> Array:
 		])
 	lines.append_array([
 		"WHAT CHANGES E",
-		"  the bird's ability (Activate): a new speed or g adds or removes energy",
-		"  a blue bird split: the pieces have MORE KE (the split works like an explosion)",
+		"  the ball's ability (Activate): a new speed or g adds or removes energy",
+		"  a Splitter split: the pieces have MORE KE (the split works like an explosion)",
 		"  a crash: energy goes into heat, sound, bending and moving the blocks",
 	])
 	var hit := PhysicsParams.collision
@@ -43,7 +43,7 @@ func _build_lines() -> Array:
 		var after: float = hit["ke_after"]
 		lines.append_array([
 			"",
-			"LAST HIT (bird + %s)" % hit["other_name"],
+			"LAST HIT (ball + %s)" % hit["other_name"],
 			"  KE just before %s J,  just after %s J:  %s J lost (%s%%)" % [_n(before, ["E"]), _n(after, ["E"]), _n(before - after, ["E"]), String.num((before - after) / before * 100.0, 0) if before > 0.0 else "0"],
 		])
 	return lines

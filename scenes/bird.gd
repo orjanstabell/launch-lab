@@ -9,11 +9,13 @@ extends RigidBody2D
 ##   "split":  the blue bird splits into pieces, each on its own formula segment.
 ##   "rocket": burns fuel along its heading; the segment's formula includes the
 ##             rocket equation, and the bird gets lighter as it burns.
-##   "egg":    Matilda throws an egg straight down and recoils up; bird and egg
+##   "egg":    the Dropper throws an egg straight down and recoils up; bird and egg
 ##             each get their own segment (like a split into two unequal pieces).
 ##
 ## On the first hit, a bird becomes a normal RigidBody2D with the formula's
 ## velocity at that moment, and Godot physics handles the crash.
+
+signal auto_stopped   # it paused the game at `pause_at`
 
 enum State { FLYING, PHYSICS }
 
@@ -39,7 +41,9 @@ var exhaust: RocketExhaust = null   # the rocket bird's exhaust puffs, once it f
 ## F = m·Δv/Δt − m·g. Zero while flying on the formula (only gravity acts then).
 var contact_force := Vector2.ZERO
 var _previous_velocity := Vector2.INF
-var activate_at := INF   # flight time at which to use the ability automatically (practice problems)
+var activate_at := INF   # flight time at which to use the ability automatically (practice problems, lecture cues)
+var pause_at := INF   # flight time at which to pause the game on exactly that moment (e.g. the top of the arc)
+var _stamps := 0   # strobe dots left on the trail so far
 
 # Blue bird split
 var is_piece := false   # an extra piece from a split (not the bird you launched)
@@ -323,7 +327,7 @@ func _split():
 	_break_up(split_segments(), int(count / 2.0), type, {"kind": "split", "pieces": count, "spread": PhysicsParams.split["spread"]})
 
 
-## For Matilda: [her segment, the egg's segment] if she threw the egg right now.
+## For the Dropper: [her segment, the egg's segment] if she threw the egg right now.
 ## The throw happens in an instant, so momentum is conserved. Downwards, the egg
 ## leaves at speed u relative to her:
 ##   m_egg·Δv_egg + m_bird·Δv_bird = 0   and   Δv_egg − Δv_bird = u·(down)
@@ -367,7 +371,7 @@ func _drop_egg():
 	_break_up(egg_segments(), 0, "egg", {"kind": "egg", "pieces": 2, "egg_speed": PhysicsParams.egg["speed"], "straight_down": PhysicsParams.egg["straight_down"]})
 
 
-## Break into pieces (a split, or Matilda and her egg): note momentum and energy
+## Break into pieces (a split, or the Dropper and her egg): note momentum and energy
 ## before and after for the Momentum topic, keep the old segment as the
 ## "unsplit" reference, carry on as piece `keep`, and launch the others as new
 ## birds of `other_type`.
@@ -405,6 +409,7 @@ func _break_up(new_segments: Array[LaunchParams], keep: int, other_type: String,
 		get_parent().add_child(piece)
 		pieces.append(piece)
 	_start_segment(new_segments[keep])
+	queue_redraw()   # (a Dropper no longer carries its ballast)
 
 
 func _start_segment(new_segment: LaunchParams):
@@ -435,6 +440,13 @@ func _fly(delta: float):
 		trail.add_point(position)
 		PhysicsParams.activate()
 		delta -= first_part
+	# A scheduled stop (e.g. "freeze at the top"): only fly up to that exact moment
+	# this step, and pause there.
+	if flight_time + delta >= pause_at:
+		delta = maxf(pause_at - flight_time, 0.0)
+		pause_at = INF
+		get_tree().paused = true
+		auto_stopped.emit()
 	var next_t := t + delta
 	var from := position
 	var to := Units.to_px(Kinematics.position(segment, next_t))
@@ -462,6 +474,12 @@ func _fly(delta: float):
 	if segment.is_rocket():
 		queue_redraw()   # the flame comes and goes
 	trail.add_point(position)
+	# The strobe: a dot wherever the formula puts the bird at each tick (the bird
+	# you launched only, or a split would fill the sky with dots).
+	while not is_piece and (_stamps + 1) * Trail.STAMP_INTERVAL <= flight_time:
+		_stamps += 1
+		var ago := flight_time - _stamps * Trail.STAMP_INTERVAL
+		trail.add_stamp(Units.to_px(Kinematics.position(segment, maxf(t - ago, 0.0))))
 
 	if flight_time > MAX_FLIGHT_TIME:
 		queue_free()
@@ -517,7 +535,7 @@ func _record_collision():
 	PhysicsParams.collision = {
 		"bird": self,
 		"other": other,
-		"other_name": "pig" if other is Pig else "block",
+		"other_name": ("drum" if other.big else "can") if other is Pig else "block",
 		"at": Units.to_m(position),
 		"other_at": Units.to_m(other.position),
 		"other_radius": other.radius_m if other is Pig else 0.0,
@@ -571,4 +589,4 @@ func _update_physics_trail(delta: float):
 
 
 func _draw():
-	BirdArt.draw_bird(self, Vector2.ZERO, _shape.radius, type, burning())
+	BirdArt.draw_bird(self, Vector2.ZERO, _shape.radius, type, burning(), not pieces.is_empty())

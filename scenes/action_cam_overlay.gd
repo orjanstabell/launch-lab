@@ -54,14 +54,14 @@ func _draw_motion(k: float):
 		var amount: Vector2 = bird.mass_now() * v if momentum else v
 		total += bird.mass_now() * v
 		points.append(bird.position)
-		_linear_arrow(bird.position, amount, Color(1.0, 0.5, 0.4), "bird: %s %s" % [Reveal.num(amount.length(), ["p" if momentum else "v"]), "kg·m/s" if momentum else "m/s"], -1.0, k)
+		_linear_arrow(bird.position, amount, Color(1.0, 0.5, 0.4), "ball: %s %s" % [Reveal.num(amount.length(), ["p" if momentum else "v"]), "kg·m/s" if momentum else "m/s"], -1.0, k)
 	if is_instance_valid(pig):   # (even if the hit just knocked it out: it fades for a moment)
 		var v := Units.to_m(pig.linear_velocity)
 		var amount: Vector2 = pig.mass * v if momentum else v
 		total += pig.mass * v
 		points.append(pig.position)
 		if amount.length() > 0.05:
-			_linear_arrow(pig.position, amount, Color(0.6, 1.0, 0.4), "pig: %s %s" % [Reveal.num(amount.length(), ["p" if momentum else "v"]), "kg·m/s" if momentum else "m/s"], 1.0, k)
+			_linear_arrow(pig.position, amount, Color(0.6, 1.0, 0.4), "can: %s %s" % [Reveal.num(amount.length(), ["p" if momentum else "v"]), "kg·m/s" if momentum else "m/s"], 1.0, k)
 	if momentum and points.size() == 2:
 		var middle: Vector2 = (points[0] + points[1]) / 2.0 + Vector2(0, -90) * k
 		_linear_arrow(middle, total, Color.WHITE, "Σp = %s kg·m/s" % Reveal.num(total.length(), ["p"]), 1.0, k)

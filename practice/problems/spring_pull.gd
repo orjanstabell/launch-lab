@@ -4,7 +4,7 @@ extends Problem
 
 func _init():
 	topic = "Energy"
-	title = "Spring slingshot: pull to hit the pig"
+	title = "Spring slingshot: pull to hit the can"
 	kind = "control"
 	answers = [{"label": "Δx", "unit": "m", "min": 0.05, "max": 2.0, "step": 0.01, "key": "pull"}]
 	hidden_keys = ["pull", "v0", "predict"]
@@ -30,13 +30,13 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "Spring k = %s N/m, bird m = %s kg, θ = %s°, g = %s m/s², y₀ = %s m.\nHow far back (Δx) must you pull to hit the pig at (%s, %s) m?" % [n(launch["k"]), n(launch["m"]), n(launch["theta"]), n(launch["g"]), n(launch["y0"]), n(targets[0].x), n(targets[0].y)]
+	return "Spring k = %s N/m, ball m = %s kg, θ = %s°, g = %s m/s², y₀ = %s m.\nHow far back (Δx) must you pull to hit the can at (%s, %s) m?" % [n(launch["k"]), n(launch["m"]), n(launch["theta"]), n(launch["g"]), n(launch["y0"]), n(targets[0].x), n(targets[0].y)]
 
 
 func solution_steps() -> Array[String]:
 	var v0 := correct[0] * sqrt(launch["k"] / launch["m"])
 	return [
-		"1) The speed that hits the pig (kinematics):",
+		"1) The speed that hits the can (kinematics):",
 		"   v₀² = g·X² / (2·cos²θ·(y₀ − Y + X·tanθ))  →  v₀ = %s m/s" % n(v0),
 		"2) The pull that gives that speed (energy): ½·k·Δx² = ½·m·v₀²",
 		"   Δx = v₀·√(m/k) = %s·√(%s/%s) = %s m" % [n(v0), n(launch["m"]), n(launch["k"]), n(correct[0])],

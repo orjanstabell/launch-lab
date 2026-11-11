@@ -16,7 +16,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "A %s kg bird is launched at v₀ = %s m/s, θ = %s° (g = %s m/s²).\nHow much momentum does it have at the top of its arc?" % [n(launch["m"]), n(launch["v0"]), n(launch["theta"]), n(launch["g"])]
+	return "A %s kg ball is launched at v₀ = %s m/s, θ = %s° (g = %s m/s²).\nHow much momentum does it have at the top of its arc?" % [n(launch["m"]), n(launch["v0"]), n(launch["theta"]), n(launch["g"])]
 
 
 func solution_steps() -> Array[String]:

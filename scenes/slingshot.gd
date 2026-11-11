@@ -44,9 +44,9 @@ func _draw():
 	var bird_m := Vector2(0, PhysicsParams.values["y0"]) + pulled
 	bird_m.y = maxf(bird_m.y, bird_type["radius"])
 	var bird_at := Units.to_px(bird_m)
-	draw_line(left_tip, bird_at, BAND_COLOR, 3.0)
-	BirdArt.draw_bird(self, bird_at, radius, PhysicsParams.bird_type)
+	draw_line(left_tip, bird_at, BAND_COLOR, 3.0)   # both bands behind it: it sits in the pouch
 	draw_line(right_tip, bird_at, BAND_COLOR, 3.0)
+	BirdArt.draw_bird(self, bird_at, radius, PhysicsParams.bird_type)
 	if PhysicsParams.launch_mode == "spring" and pulled.length() > 0.02:
 		draw_dashed_line(bird_at, launch_point, Color(1, 1, 1, 0.7), 1.5, 5.0)
 		DrawUtil.label(self, bird_at, Vector2(-40, 30), "Δx = %s m" % Reveal.num(pulled.length(), ["pull"]), Color.WHITE)

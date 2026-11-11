@@ -38,8 +38,8 @@ func _ready():
 	_pause_button.toggle_mode = true
 	_step_button = _add_button(grid, step_frame, "While paused: run exactly one physics frame (F)")
 	_speed_button = _add_button(grid, cycle_speed, "Slow motion: 1×, 0.5×, 0.25×, 0.1× (S)")
-	_zoom_button = _add_button(grid, cycle_zoom, "Fit: keep the whole arc on screen.\n2×, 3×: follow the bird up close (Z)")
-	_action_button = _add_button(grid, cycle_action_cam, "Action cam: when a bird gets close to a pig, zoom in, go into slow motion\nand show the collision on both: forces, velocities or momentum. Click to cycle (C)")
+	_zoom_button = _add_button(grid, cycle_zoom, "Fit: keep the whole arc on screen.\n2×, 3×: follow the ball up close (Z)")
+	_action_button = _add_button(grid, cycle_action_cam, "Action cam: when a ball gets close to a can, zoom in, go into slow motion\nand show the collision on both: forces, velocities or momentum. Click to cycle (C)")
 	_action_button.toggle_mode = true
 	details_button = _add_button(grid, Callable(), "Show the formulas and explanations over the sky (D)")
 	details_button.toggle_mode = true
@@ -106,6 +106,17 @@ func cycle_zoom():
 func cycle_action_cam():
 	_action_index = (_action_index + 1) % ACTION_VIEWS.size()
 	action_cam_changed.emit(ACTION_VIEWS[_action_index])
+	_refresh()
+
+
+## Back to normal speed, the Fit zoom and no action cam (a level was loaded).
+func reset_view():
+	_speed_index = 0
+	Engine.time_scale = 1.0
+	_zoom_index = 0
+	zoom_changed.emit(1.0)
+	_action_index = 0
+	action_cam_changed.emit("")
 	_refresh()
 
 

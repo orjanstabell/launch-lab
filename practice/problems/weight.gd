@@ -21,7 +21,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "A bird of %s kg is on %s, where g = %s m/s².\nHow strong is gravity's pull on it? (Check throws it off a 10 m ledge, next to a ghost that falls with your force.)" % [n(launch["m"]), planet, n(launch["g"])]
+	return "A ball of %s kg is on %s, where g = %s m/s².\nHow strong is gravity's pull on it? (Check throws it off a 10 m ledge, next to a ghost that falls with your force.)" % [n(launch["m"]), planet, n(launch["g"])]
 
 
 func solution_steps() -> Array[String]:

@@ -35,7 +35,7 @@ func _draw():
 		draw_arc(other_at, hit["other_radius"] * Units.PIXELS_PER_METER, 0.0, TAU, 28, Color(ON_PIG, 0.6), 2.0 * k, true)
 
 	_arrow(other_at, on_other, ON_PIG, "push on the %s: J = %s N·s" % [hit["other_name"], _n(on_other.length())], k)
-	_arrow(bird_at, on_bird, ON_BIRD, "push on the bird: J = %s N·s" % _n(on_bird.length()), k)
+	_arrow(bird_at, on_bird, ON_BIRD, "push on the ball: J = %s N·s" % _n(on_bird.length()), k)
 
 	var duration: float = maxf(hit.get("duration", 0.0), 0.001)
 	var opposite := (on_bird + on_other).length() <= 0.2 * maxf(on_other.length(), 0.01)

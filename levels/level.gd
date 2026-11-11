@@ -73,9 +73,11 @@ static func capture(objects: Dictionary, topic: int) -> Dictionary:
 
 
 ## Put a level's settings into PhysicsParams and Reveal. Anything the level
-## doesn't mention keeps its current value. Anything unknown or of the wrong
-## kind (a hand-edited file, or one saved by a newer version) is skipped.
+## doesn't mention gets its default, so nothing leaks in from the level before.
+## Anything unknown or of the wrong kind (a hand-edited file, or one saved by a
+## newer version) is skipped.
 static func apply_settings(level: Dictionary):
+	PhysicsParams.reset_to_defaults()
 	# The launch mode first: in spring mode, setting m recomputes v₀ from the spring.
 	var mode: String = level.get("launch_mode", "speed") if level.get("launch_mode") in ["speed", "spring"] else "speed"
 	for key in _known_numbers(level.get("spring"), PhysicsParams.SPRING_DEFINITIONS):

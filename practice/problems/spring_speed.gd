@@ -19,7 +19,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "The slingshot's spring has k = %s N/m and is pulled back Δx = %s m.\nWhat launch speed does it give a %s kg bird?" % [n(launch["k"]), n(launch["pull"]), n(launch["m"])]
+	return "The slingshot's spring has k = %s N/m and is pulled back Δx = %s m.\nWhat launch speed does it give a %s kg ball?" % [n(launch["k"]), n(launch["pull"]), n(launch["m"])]
 
 
 func solution_steps() -> Array[String]:

@@ -14,7 +14,7 @@ func _build_lines() -> Array:
 	if is_instance_valid(bird):
 		m = bird.mass_now()
 		g = bird.segment.g
-		heading = "BIRD IN FLIGHT" if bird.state == Bird.State.FLYING else "BIRD (crashed)"
+		heading = "BALL IN FLIGHT" if bird.state == Bird.State.FLYING else "BALL (crashed)"
 
 	var force := m * g
 	var mass_text := Reveal.num(m, ["m"])
@@ -67,11 +67,11 @@ func _build_lines() -> Array:
 	if PhysicsParams.launch_mode == "spring":
 		lines.append_array([
 			"",
-			"SPRING (Hooke's law):  F = k·Δx, pulling the bird forward",
+			"SPRING (Hooke's law):  F = k·Δx, pulling the ball forward",
 			"F = %s · %s = %s N  →  at release a = F/m = %s m/s²" % [Reveal.num(PhysicsParams.spring["k"], ["k"]), Reveal.num(PhysicsParams.spring["pull"], ["pull"]), spring_text, Reveal.num(spring_force / PhysicsParams.values["m"], ["a", "k", "pull", "m"])],
-			"The force shrinks as the band relaxes, so the bird's speed builds up",
+			"The force shrinks as the band relaxes, so the ball's speed builds up",
 			"to v₀ = Δx·√(k/m) (see the Energy topic). Here mass DOES matter:",
-			"the same spring launches a heavier bird slower.",
+			"the same spring launches a heavier ball slower.",
 		])
 	return lines
 
