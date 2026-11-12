@@ -55,7 +55,7 @@ func _tap_time_for(p: LaunchParams, target: Vector2) -> float:
 
 
 func question() -> String:
-	return "This ball flies straight (g → 0) after you tap it. Hit the can at (%s, %s) m.\nv₀ = %s m/s, θ = %s°, g = %s m/s², y₀ = %s m. At what time t must you tap?" % [n(targets[0].x), n(targets[0].y), n(launch["v0"]), n(launch["theta"]), n(launch["g"]), n(launch["y0"])]
+	return "This ball flies straight (g → 0) after you tap it. Hit the dummy at (%s, %s) m.\nv₀ = %s m/s, θ = %s°, g = %s m/s², y₀ = %s m. At what time t must you tap?" % [n(targets[0].x), n(targets[0].y), n(launch["v0"]), n(launch["theta"]), n(launch["g"]), n(launch["y0"])]
 
 
 ## The straight line after tapping at `tap`: a segment with g = 0.
@@ -78,7 +78,7 @@ func judge(given: Array[float]) -> Dictionary:
 	if closest.y <= HIT_TOLERANCE_M:
 		return {"ok": true, "message": "✓ Hit!"}
 	var passed := Kinematics.position(line, closest.x)
-	return {"ok": false, "message": "✗ Missed by %s m: passed %s the can" % [n(closest.y, 1), "above" if passed.y > targets[0].y else "below"]}
+	return {"ok": false, "message": "✗ Missed by %s m: passed %s the dummy" % [n(closest.y, 1), "above" if passed.y > targets[0].y else "below"]}
 
 
 func watch_time(given: Array[float]) -> float:
@@ -92,10 +92,10 @@ func solution_steps() -> Array[String]:
 	return [
 		"Before the tap: x = vx·t,  y = y₀ + vy₀·t − ½·g·t²,  vy = vy₀ − g·t",
 		"vx = %s m/s,  vy₀ = %s m/s" % [n(v.x), n(v.y)],
-		"After tapping at t₁ it goes straight along its velocity, so the can must be on that line:",
+		"After tapping at t₁ it goes straight along its velocity, so the dummy must be on that line:",
 		"(X − x(t₁))·vy(t₁) = (Y − y(t₁))·vx   →   ½·g·vx·t₁² − g·X·t₁ + (X·vy₀ − (Y − y₀)·vx) = 0",
 		"%s·t₁² − %s·t₁ + %s = 0" % [n(0.5 * p.g * v.x, 3), n(p.g * targets[0].x, 3), n(c, 3)],
-		"t₁ = %s s  (the root before the ball reaches the can)" % n(correct[0]),
+		"t₁ = %s s  (the root before the ball reaches the dummy)" % n(correct[0]),
 	]
 
 

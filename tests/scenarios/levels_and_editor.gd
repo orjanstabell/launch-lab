@@ -58,7 +58,7 @@ func run():
 	var b = main.level_data["blocks"]
 	ok("first box on the ground at x snapped to 10.0 (%s)" % [b[0]], b.size() >= 1 and is_equal_approx(b[0]["y"], 0.3) and is_equal_approx(b[0]["x"], 10.0))
 	ok("second box stacks on the first (y = %.2f)" % (b[1]["y"] if b.size() > 1 else -1.0), b.size() == 2 and is_equal_approx(b[1]["y"], 0.9))
-	main.editor.piece = "can"
+	main.editor.piece = "dummy"
 	click.call(Vector2(10.0, 5.0)); click.call(Vector2(10.0, 5.0), MOUSE_BUTTON_LEFT, false)
 	ok("pig drops onto the stack (y = %.2f)" % main.level_data["pigs"][0]["y"], is_equal_approx(main.level_data["pigs"][0]["y"], 1.6))
 	await frames(2)

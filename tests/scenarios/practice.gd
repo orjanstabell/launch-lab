@@ -33,7 +33,7 @@ func run():
 	main.show_topic(3)
 	var panel = main.find_children("*", "PracticePanel", true, false)[0]
 	# Control, two unknowns: two pigs
-	pick(panel, "Two cans"); panel.new_problem()
+	pick(panel, "Two dummies"); panel.new_problem()
 	await frames(5)
 	ok("problem open: inputs locked, no tower, unknowns hidden", P.inputs_locked and main.level.get_child_count() == 0 and R.is_hidden("v0") and R.is_hidden("theta"))
 	ok("manual launch blocked", not P.manual_launch_allowed)
@@ -45,6 +45,10 @@ func run():
 	ok("answer still not shown", not panel._feedback.text.begins_with("Answer"))
 	panel.show_solution()
 	ok("Show solution: answer, solution flag, formulas stay closed", String.num(c[0], 2) in panel._feedback.text and panel.solution_shown and not main.show_details)
+	ok("Show solution flies the right answer on a control problem", not panel._watching.is_empty() and absf(P.values["v0"] - c[0]) < 0.01)
+	for i in 600:
+		await physics_frame
+		if panel._watching.is_empty(): break
 	# Yellow tap, flown for real with a scheduled tap
 	pick(panel, "Gravity off"); panel.new_problem()
 	await frames(5)

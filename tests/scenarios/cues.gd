@@ -118,7 +118,7 @@ func run():
 	await frames(40)
 	main.launch()
 	await frames(240)
-	ok("a shot that lands without hitting is measured ('%s')" % main.message.text, main.message.text.begins_with("Missed by 11") and "landed short of the can" in main.message.text and not main.shot_marks._tape.is_empty())
+	ok("a shot that lands without hitting is measured ('%s')" % main.message.text, main.message.text.begins_with("Missed by 11") and "landed short of the dummy" in main.message.text and not main.shot_marks._tape.is_empty())
 	P.set_value("v0", load("res://physics/kinematics.gd").solve_speed(45.0, 9.81, 1.0, Vector2(35.0, 0.4)))
 	main.launch()
 	await frames(300)

@@ -337,7 +337,8 @@ func show_solution():
 		for i in problem.answers.size():
 			parts.append("%s = %s %s" % [problem.answers[i]["label"], Problem.n(problem.correct[i]), problem.answers[i]["unit"]])
 	_feedback.text = "Answer: " + ", ".join(parts)
-	if problem.kind == "predict" and problem.flies and _watching.is_empty():
+	# Fly the right answer for every kind that flies (control problems too), cutting off a shot still in the air.
+	if problem.kind == "control" or problem.flies:
 		_launch(problem.correct, false)
 	changed.emit()
 

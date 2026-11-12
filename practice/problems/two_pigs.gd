@@ -5,7 +5,7 @@ extends Problem
 
 func _init():
 	topic = "Kinematics"
-	title = "Two cans, one ball: find v₀ and θ"
+	title = "Two dummies, one ball: find v₀ and θ"
 	kind = "control"
 	answers = [
 		{"label": "v₀", "unit": "m/s", "min": 1.0, "max": 40.0, "step": 0.01, "key": "v0"},
@@ -29,7 +29,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "Hit BOTH cans with one ball: one on a pole at (%s, %s) m, one on the ground at x = %s m.\ng = %s m/s², y₀ = %s m. Find v₀ and θ." % [n(targets[0].x), n(targets[0].y), n(targets[1].x), n(launch["g"]), n(launch["y0"])]
+	return "Hit BOTH dummies with one ball: one on a pole at (%s, %s) m, one on the ground at x = %s m.\ng = %s m/s², y₀ = %s m. Find v₀ and θ." % [n(targets[0].x), n(targets[0].y), n(targets[1].x), n(launch["g"]), n(launch["y0"])]
 
 
 func solution_steps() -> Array[String]:
@@ -39,11 +39,11 @@ func solution_steps() -> Array[String]:
 	var k := g * (1.0 + u * u) / (2.0 * correct[0] * correct[0])
 	return [
 		"Path: y = y₀ + x·u − k·x²,   u = tanθ,   k = g / (2·v₀²·cos²θ)",
-		"Can 1: %s − %s = %s·u − k·%s²" % [n(targets[0].y), n(y0), n(targets[0].x), n(targets[0].x)],
-		"Can 2: %s − %s = %s·u − k·%s²" % [n(targets[1].y), n(y0), n(targets[1].x), n(targets[1].x)],
+		"Dummy 1: %s − %s = %s·u − k·%s²" % [n(targets[0].y), n(y0), n(targets[0].x), n(targets[0].x)],
+		"Dummy 2: %s − %s = %s·u − k·%s²" % [n(targets[1].y), n(y0), n(targets[1].x), n(targets[1].x)],
 		"Two equations, two unknowns (u and k) → u = %s,  k = %s" % [n(u, 4), n(k, 5)],
 		"θ = atan(u) = %s°,   v₀ = √(g·(1 + u²) / (2·k)) = %s m/s" % [n(correct[1]), n(correct[0])],
-		"(If both cans were at the same x there'd be no solution: one path can't be at two heights at once.)",
+		"(If both dummies were at the same x there'd be no solution: one path can't be at two heights at once.)",
 	]
 
 

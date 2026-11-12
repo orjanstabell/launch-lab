@@ -363,7 +363,7 @@ func _measure_miss():
 	if nearest["time"] >= bird.t - 0.02:   # it was closest when it came down
 		how = "landed short of" if passed.x < target.x else "landed beyond"
 	var distance := "%s m" % String.num(nearest["distance"], 1)
-	message.text = "Missed by %s: %s the %s." % [distance, how, "drum" if can.big else "can"]
+	message.text = "Missed by %s: %s the %s." % [distance, how, "big dummy" if can.big else "dummy"]
 	shot_marks.show_miss(Units.to_px(passed), can.position, distance)
 
 
@@ -642,7 +642,7 @@ func _build_level():
 		pig.position = Units.to_px(Vector2(pig_data["x"], pig_data["y"]))
 		pig.freeze = editor.active
 		pig.died.connect(_on_pig_died.bind(pig.big))
-		pig.dented.connect(func(): message.text = "Drum dented.  One more hit.")
+		pig.dented.connect(func(): message.text = "Hard hat cracked.  One more hit.")
 		level.add_child(pig)
 
 
@@ -652,7 +652,7 @@ func _on_pig_died(big: bool):
 	if left <= 0:
 		message.text = "All down in %d shot%s.  R to reset." % [shots, "" if shots == 1 else "s"]
 	else:
-		message.text = "%s down.  %d to go." % ["Drum" if big else "Can", left]
+		message.text = "%s down.  %d to go." % ["Big dummy" if big else "Dummy", left]
 
 
 func _build_ui():
@@ -837,7 +837,7 @@ func _make_help() -> PanelContainer:
 		["P  /  F", "pause  /  one physics step while paused"],
 		["S", "slow motion: 1×, 0.5×, 0.25×, 0.1×"],
 		["Z", "zoom: fit the arc, or follow the ball at 2× / 3×"],
-		["C", "action cam near a can: forces, velocities, momentum, off"],
+		["C", "action cam near a dummy: forces, velocities, momentum, off"],
 		["D", "formulas and explanations over the sky"],
 		["1 – %d" % topics.size(), "tabs"],
 		["Right-click", "move the target for Solve (Motion tab)"],

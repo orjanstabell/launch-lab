@@ -11,4 +11,4 @@ func _init():
 	add_details(PracticeDetailsLabel.new(practice))
 	var overlay := PracticeOverlay.new()
 	overlay.practice = practice
-	add_overlay(overlay, "Cans & markers", true, "The problem's cans, your answer (flags, lines, arrows), ghost balls and the solution path")
+	add_overlay(overlay, "Dummies & markers", true, "The problem's dummies, your answer (flags, lines, arrows), ghost balls and the solution path")

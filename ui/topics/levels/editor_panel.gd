@@ -55,14 +55,14 @@ func _ready():
 	row.add_child(_opens_on)
 
 	row = _add_row()
-	_add_label(row, "Drum mass")
+	_add_label(row, "Big dummy mass")
 	_big_pig_mass = SpinBox.new()
 	_big_pig_mass.min_value = 0.5
 	_big_pig_mass.max_value = 50.0
 	_big_pig_mass.step = 0.5
 	_big_pig_mass.suffix = "kg"
 	_big_pig_mass.value = Pig.BIG_MASS
-	_big_pig_mass.tooltip_text = "The mass of the drum(s) in this level. A heavy can barely moves when hit;\na light one flies off."
+	_big_pig_mass.tooltip_text = "The mass of the big dumm(ies) in this level. A heavy one barely moves when hit;\na light one flies off."
 	_big_pig_mass.value_changed.connect(_on_big_pig_mass_changed)
 	var line_edit := _big_pig_mass.get_line_edit()
 	line_edit.text_submitted.connect(func(_text): line_edit.release_focus())
@@ -166,9 +166,9 @@ func _on_big_pig_mass_changed(value: float):
 			found = true
 	if found:
 		main.reset_level()
-		_status.text = "Drum: %s kg." % String.num(value, 1)
+		_status.text = "Big dummy: %s kg." % String.num(value, 1)
 	else:
-		_status.text = "No drum in this level yet: place one first."
+		_status.text = "No big dummy in this level yet: place one first."
 
 
 func _export():

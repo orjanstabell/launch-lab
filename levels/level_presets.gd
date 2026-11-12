@@ -36,7 +36,7 @@ static func _cue(cue_name: String, question: String, options: String, reveal: St
 
 
 static func cue_mass() -> Dictionary:
-	var level := _cue("Mass and the arc", "1 kg hits the can. Same launch, 5 kg?", "A  short   ·   B  hits   ·   C  long",
+	var level := _cue("Mass and the arc", "1 kg hits the dummy. Same launch, 5 kg?", "A  short   ·   B  hits   ·   C  long",
 		"B.  Same arc. 5× the pull on 5× the mass.")
 	level["launch"] = {"g": 9.81, "v0": 15.0, "theta": 45.0, "y0": 1.0, "m": 5.0}
 	Level.add_pig(level, Vector2(23.6, Pig.RADIUS_M))
@@ -53,7 +53,7 @@ static func cue_apex() -> Dictionary:
 
 
 static func cue_two_angles() -> Dictionary:
-	var level := _cue("Two angles, one range", "30° hits the can. Does 60°?", "A  short   ·   B  hits   ·   C  long",
+	var level := _cue("Two angles, one range", "30° hits the dummy. Does 60°?", "A  short   ·   B  hits   ·   C  long",
 		"B.  Same spot. Less speed across, more time aloft.")
 	level["launch"] = {"g": 9.81, "v0": 15.0, "theta": 60.0, "y0": 0.0, "m": 1.0}   # (from the ground: a raised launch favours the flat shot)
 	Level.add_pig(level, Vector2(19.5, Pig.RADIUS_M))
@@ -92,10 +92,10 @@ static func cue_planet() -> Dictionary:
 	return level
 
 
-## The first level: a small tower with the can on top.
+## The first level: a small tower with the dummy on top.
 static func tower() -> Dictionary:
 	var level := Level.blank("Tower")
-	level["description"] = "Knock the can off its tower, then take on the drum (it survives one hit)."
+	level["description"] = "Knock the dummy off its tower, then take on the big one in the hard hat (it survives one hit)."
 	add_tower(level, 25.0)
 	Level.add_pig(level, Vector2(29.5, Pig.BIG_RADIUS_M), true)
 	return level
@@ -103,7 +103,7 @@ static func tower() -> Dictionary:
 
 static func moon() -> Dictionary:
 	var level := Level.blank("Moon gravity")
-	level["description"] = "On the Moon g = 1.62 m/s². Clear the wall and hit the can."
+	level["description"] = "On the Moon g = 1.62 m/s². Clear the wall and hit the dummy."
 	level["launch"] = {"g": 1.62, "v0": 10.0, "theta": 45.0, "y0": 1.0, "m": 1.0}
 	Level.add_block(level, Vector2(0.4, 6.0), Vector2(22.0, 3.0))
 	Level.add_pig(level, Vector2(38.0, 0.4))
@@ -112,7 +112,7 @@ static func moon() -> Dictionary:
 
 static func two_angles() -> Dictionary:
 	var level := Level.blank("Same range, two angles")
-	level["description"] = "v₀ = 16 m/s is fixed. Two different angles hit the can: find both."
+	level["description"] = "v₀ = 16 m/s is fixed. Two different angles hit the dummy: find both."
 	level["launch"] = {"g": 9.81, "v0": 16.0, "theta": 20.0, "y0": 1.0, "m": 1.0}
 	Level.add_pig(level, Vector2(22.0, 0.4))
 	return level
@@ -120,7 +120,7 @@ static func two_angles() -> Dictionary:
 
 static func hidden_gravity() -> Dictionary:
 	var level := Level.blank("Find the hidden g")
-	level["description"] = "g is hidden and random. Measure it with a test shot, then hit the can."
+	level["description"] = "g is hidden and random. Measure it with a test shot, then hit the dummy."
 	level["launch"] = {"v0": 14.0, "theta": 45.0, "y0": 1.0, "m": 1.0}
 	level["hidden"] = ["g", "predict"]
 	level["randomize_hidden"] = true
@@ -138,8 +138,8 @@ static func high_arc_only() -> Dictionary:
 
 
 static func three_pigs() -> Dictionary:
-	var level := Level.blank("Three cans, one Splitter")
-	level["description"] = "Use the Splitter to hit all three cans."
+	var level := Level.blank("Three dummies, one Splitter")
+	level["description"] = "Use the Splitter to hit all three dummies."
 	level["launch"] = {"g": 9.81, "v0": 17.0, "theta": 45.0, "y0": 1.0, "m": 1.0}
 	level["bird_type"] = "blue"
 	for x in [24.0, 27.0, 30.0]:
@@ -150,7 +150,7 @@ static func three_pigs() -> Dictionary:
 
 static func egg_drop() -> Dictionary:
 	var level := Level.blank("Ballast drop")
-	level["description"] = "The can hides in a deep pit. Fly the Dropper over it and drop the ballast in."
+	level["description"] = "The dummy hides in a deep pit. Fly the Dropper over it and drop the ballast in."
 	level["launch"] = {"g": 9.81, "v0": 17.0, "theta": 50.0, "y0": 1.0, "m": 1.0}
 	level["bird_type"] = "matilda"
 	Level.add_block(level, Vector2(0.4, 3.0), Vector2(21.0, 1.5))
@@ -162,7 +162,7 @@ static func egg_drop() -> Dictionary:
 
 static func heavy_spring() -> Dictionary:
 	var level := Level.blank("Spring: heavy ball")
-	level["description"] = "A 3 kg ball in the spring slingshot: how far must you pull to reach the can?"
+	level["description"] = "A 3 kg ball in the spring slingshot: how far must you pull to reach the dummy?"
 	level["launch"] = {"g": 9.81, "theta": 40.0, "y0": 1.0, "m": 3.0}
 	level["launch_mode"] = "spring"
 	level["spring"] = {"k": 800.0, "pull": 0.6}
@@ -172,7 +172,7 @@ static func heavy_spring() -> Dictionary:
 
 static func yellow_straight() -> Dictionary:
 	var level := Level.blank("Gravity off: straight shot")
-	level["description"] = "Tap (Space) to switch gravity off (g → 0) at the right moment, and fly straight at the can."
+	level["description"] = "Tap (Space) to switch gravity off (g → 0) at the right moment, and fly straight at the dummy."
 	level["launch"] = {"g": 9.81, "v0": 18.0, "theta": 60.0, "y0": 1.0, "m": 1.0}
 	level["bird_type"] = "custom"
 	level["ability_on"] = {"g": true, "v0": false, "theta": false, "m": false}

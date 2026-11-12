@@ -15,5 +15,5 @@ func _init():
 	add_overlay(AngleOverlay.new(), "Angles", false, "The launch angle θ and the angle of the velocity right now")
 	add_overlay(MarkersOverlay.new(), "Apex & landing", true, "Where the arc tops out and where it lands")
 	add_overlay(TargetOverlay.new(), "Target", true, "The target for Solve mode (right-click in the world to move it)")
-	add_overlay(PigOverlay.new("velocity"), "Cans", true, "Each can's velocity, while it moves")
+	add_overlay(PigOverlay.new("velocity"), "Dummies", true, "Each dummy's velocity, while it moves")
 	add_overlay(ExhaustOverlay.new(), "Rocket exhaust", true, "Velocity arrows on some of the rocket's exhaust puffs (from the ground)", "rocket")

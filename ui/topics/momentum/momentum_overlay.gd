@@ -72,7 +72,7 @@ func _draw_pigs(k: float):
 		if p.length() < 0.05:
 			continue   # resting: nothing to show
 		_p_arrow(pig.position, p, k, PIG_COLOR)
-		DrawUtil.label(self, pig.position + _arrow_vector(p, k), Vector2(10, -6), "p can = %s kg·m/s" % Reveal.num(p.length(), ["p"]), PIG_COLOR)
+		DrawUtil.label(self, pig.position + _arrow_vector(p, k), Vector2(10, -6), "p dummy = %s kg·m/s" % Reveal.num(p.length(), ["p"]), PIG_COLOR)
 
 
 ## The rest of the arc the bird was on when it split: where it would have gone.

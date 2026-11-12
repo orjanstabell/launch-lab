@@ -1,14 +1,14 @@
 class_name Pig
 extends RigidBody2D
-## The target: a can (the big one is a drum). Knocked out when something hits it
-## hard enough; a drum survives one hit. (The code still calls it a pig.)
+## The target: a crash-test dummy (the big one wears a hard hat). Knocked out when something hits it
+## hard enough; a big dummy survives one hit. (The code still calls it a pig.)
 ## "Hard enough" = the impulse it receives in one physics step is above its
 ## threshold. Impulse = change in momentum, Δp = m·Δv (kg·m/s), so we measure it
 ## straight from how much the pig's velocity changed. A heavier or faster hit
 ## counts more, and so does a fall: landing from the tower is a hit from the ground.
 
 signal died
-signal dented   # a drum took a hit it survives
+signal dented   # a big dummy took a hit it survives
 
 const RADIUS_M := 0.4
 const BIG_RADIUS_M := 0.6
@@ -18,11 +18,10 @@ const GRACE_TIME := 0.5   # ignore hits right after spawning, while the level se
 const HURT_TIME := 0.4   # after a hit it survives, one hit can't count twice
 const FADE_TIME := 0.5   # how long a defeated pig takes to fade away
 const INK := Color(0.09, 0.09, 0.12)
-const CAN_METAL := Color(0.82, 0.84, 0.88)
-const CAN_STRIPE := Color(0.86, 0.22, 0.2)
-const DRUM_METAL := Color(0.55, 0.62, 0.72)
-const DRUM_STRIPE := Color(0.98, 0.78, 0.15)
-const BIG_MASS := 3.0   # default; levels can set their own (Levels tab: "drum mass")
+const DUMMY_SKIN := Color(0.98, 0.8, 0.3)
+const HARD_HAT := Color(0.95, 0.5, 0.15)
+const SCARED_DISTANCE_M := 4.0   # the ball this close: eyes wide, mouth open
+const BIG_MASS := 3.0   # default; levels can set their own (Editor tab: "Big dummy mass")
 
 var big := false
 var radius_m := RADIUS_M
@@ -33,7 +32,7 @@ var _age := 0.0
 var _dead := false
 var _hurt_for := 0.0
 var _last_velocity := Vector2.ZERO   # m/s, from the previous physics step
-var _crumple := 0.0:   # 0 → 1 while a knocked-out can flattens
+var _crumple := 0.0:   # 0 → 1 while a knocked-out dummy flattens
 	set(value):
 		_crumple = value
 		queue_redraw()
@@ -80,6 +79,7 @@ func _physics_process(delta: float):
 	contact_force = mass * (change - from_gravity) / delta
 	_last_velocity = velocity
 	take_impulse(impulse)
+	queue_redraw()   # the eyes follow the ball
 
 
 ## A hit of size `impulse` (kg·m/s). Also called by a bird that hit this pig: by
@@ -120,19 +120,73 @@ func _draw():
 	# up-down, whichever way it had rolled) while it fades.
 	if _crumple > 0.0:
 		draw_set_transform(Vector2(0, r * 0.85 * _crumple).rotated(-rotation), -rotation, Vector2(1.0 + 0.35 * _crumple, 1.0 - 0.85 * _crumple))
-	# A can seen end-on (the big one is a drum): a metal disc with a rim, and a
-	# bold stripe across it, so you can see it roll. No face: it's a target.
+	# A crash-test dummy's head (the big one wears a hard hat), with the
+	# black-and-white target sticker, so you can see it roll. It watches the
+	# slingshot, follows the ball in the air, and goes wide-eyed when it's close.
 	draw_circle(Vector2.ZERO, r + line * 0.5, INK)
-	draw_circle(Vector2.ZERO, r - line * 0.5, DRUM_METAL if big else CAN_METAL)
-	draw_arc(Vector2.ZERO, r * 0.7, 0.0, TAU, 32, INK, line * 0.5, true)
-	var stripe := r * (0.3 if big else 0.36)
-	draw_line(Vector2(-r + line, 0), Vector2(r - line, 0), DRUM_STRIPE if big else CAN_STRIPE, stripe)
+	draw_circle(Vector2.ZERO, r - line * 0.5, DUMMY_SKIN)
 	if big:
-		for side in [-1.0, 1.0]:
-			draw_line(Vector2(-r * 0.8, side * r * 0.5), Vector2(r * 0.8, side * r * 0.5), INK, line * 0.5)
-	if big and hits_left < 2:   # took a hit: a flat dent on one side, which stays
-		var dent := PackedVector2Array()
-		for i in 9:
-			dent.append(Vector2.from_angle(lerpf(-0.75, 0.75, i / 8.0) - PI / 2.0) * (r + line * 0.6))
-		draw_colored_polygon(dent, INK)
+		var hat := _arc_points(r + line * 0.5, PI + 0.15, TAU - 0.15)
+		hat.append(Vector2(r * 0.95, -r * 0.2))
+		hat.append(Vector2(-r * 0.95, -r * 0.2))
+		draw_colored_polygon(hat, INK)
+		var shell := _arc_points(r - line * 0.5, PI + 0.3, TAU - 0.3)
+		shell.append(Vector2(r * 0.8, -r * 0.2 - line))
+		shell.append(Vector2(-r * 0.8, -r * 0.2 - line))
+		draw_colored_polygon(shell, HARD_HAT)
+		draw_line(Vector2(-r * 1.08, -r * 0.2), Vector2(r * 1.08, -r * 0.2), INK, line * 1.4)   # the brim
+		if hits_left < 2:   # took a hit: a crack, which stays
+			draw_polyline(PackedVector2Array([Vector2(-r * 0.15, -r * 0.95), Vector2(r * 0.05, -r * 0.65), Vector2(-r * 0.12, -r * 0.48), Vector2(r * 0.1, -r * 0.25)]), INK, line * 0.7, true)
+	_draw_sticker(Vector2(r * 0.42, r * 0.4 if big else -r * 0.4), r * 0.24, line * 0.5)
+	# The face, on the side towards the slingshot.
+	var look := _look_direction()
+	var scared := not _dead and _ball_near()
+	for x in [-0.55, -0.12]:
+		var eye := Vector2(x * r, (0.08 if big else -0.12) * r)
+		if _dead:
+			var s := r * 0.12
+			draw_line(eye - Vector2(s, s), eye + Vector2(s, s), INK, line * 0.6)
+			draw_line(eye + Vector2(-s, s), eye + Vector2(s, -s), INK, line * 0.6)
+			continue
+		var size := r * (0.2 if scared else 0.15)
+		draw_circle(eye, size + line * 0.4, INK)
+		draw_circle(eye, size, Color.WHITE)
+		draw_circle(eye + look * size * 0.45, size * 0.5, INK)
+	var mouth := Vector2(-0.33 * r, (0.5 if big else 0.36) * r)
+	if scared:
+		draw_circle(mouth, r * 0.11, INK)
+	else:
+		draw_line(mouth - Vector2(r * 0.16, 0), mouth + Vector2(r * 0.16, 0), INK, line * 0.6)
 	draw_set_transform(Vector2.ZERO)
+
+
+## The crash-test target: a disc in black and white quarters.
+func _draw_sticker(at: Vector2, size: float, line: float):
+	draw_circle(at, size + line, INK)
+	draw_circle(at, size, Color.WHITE)
+	for quarter in [0.0, PI]:
+		var pie := PackedVector2Array([at])
+		for point in _arc_points(size, quarter, quarter + PI / 2.0, 6):
+			pie.append(at + point)
+		draw_colored_polygon(pie, INK)
+
+
+func _arc_points(r: float, from: float, to: float, steps := 16) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for i in steps + 1:
+		points.append(Vector2.from_angle(lerpf(from, to, float(i) / steps)) * r)
+	return points
+
+
+## Where the eyes look (in the dummy's own turned frame): at the ball in the air, else at the slingshot.
+func _look_direction() -> Vector2:
+	var bird = PhysicsParams.bird
+	var world := Vector2.LEFT
+	if is_instance_valid(bird) and bird.state == Bird.State.FLYING:
+		world = (bird.global_position - global_position).normalized()
+	return world.rotated(-global_rotation)
+
+
+func _ball_near() -> bool:
+	var bird = PhysicsParams.bird
+	return is_instance_valid(bird) and bird.state == Bird.State.FLYING and bird.global_position.distance_to(global_position) < SCARED_DISTANCE_M * Units.PIXELS_PER_METER

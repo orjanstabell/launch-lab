@@ -37,7 +37,7 @@ func run():
 	await shoot_big(0.0)
 	var pig = big_pig()
 	ok("first hit: the big pig survives with a bandage (hits_left %s)" % (pig.hits_left if pig else "gone"), pig != null and pig.hits_left == 1)
-	ok("the hit was recorded on both: J on pig %.2f, J on bird %.2f" % [(P.collision["other_m"] * (P.collision["other_after"] - P.collision["other_before"])).length(), (P.collision["bird_m"] * (P.collision["bird_after"] - P.collision["bird_before"])).length()], P.collision.get("other_name") == "drum" and P.collision.has("duration"))
+	ok("the hit was recorded on both: J on pig %.2f, J on bird %.2f" % [(P.collision["other_m"] * (P.collision["other_after"] - P.collision["other_before"])).length(), (P.collision["bird_m"] * (P.collision["bird_after"] - P.collision["bird_before"])).length()], P.collision.get("other_name") == "big dummy" and P.collision.has("duration"))
 	await frames(60)
 	await shoot_big(0.0)
 	ok("second hit finishes it", big_pig() == null)

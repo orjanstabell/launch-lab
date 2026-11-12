@@ -34,6 +34,7 @@ var segment_history: Array[LaunchParams] = []   # every segment so far, includin
 var t := 0.0   # seconds since the current segment started
 var flight_time := 0.0   # seconds since launch
 var activations := 0
+var _sped_up := true   # the last "change" ability made it faster (the bee's air goes back, not ahead)
 var trail: Trail
 var hit_position := Vector2.INF   # meters: where it first hit something (INF = hasn't yet)
 var exhaust: RocketExhaust = null   # the rocket bird's exhaust puffs, once it fires
@@ -210,7 +211,9 @@ func activate():
 		return
 	match ability_kind():
 		"change":
+			var speed_before := Kinematics.velocity(segment, t).length()
 			_start_segment(next_segment())
+			_sped_up = Kinematics.velocity(segment, 0.0).length() >= speed_before
 		"split":
 			_split()
 		"egg":
@@ -471,8 +474,8 @@ func _fly(delta: float):
 	flight_time += delta
 	position = to
 	rotation = Units.to_px(Kinematics.velocity(segment, t)).angle()   # face where it's going
-	if segment.is_rocket():
-		queue_redraw()   # the flame comes and goes
+	if segment.is_rocket() or type in BirdArt.UPRIGHT or type == "yellow":
+		queue_redraw()   # the flame comes and goes; upright pictures undo the new turn; the bee's wings flutter
 	trail.add_point(position)
 	# The strobe: a dot wherever the formula puts the bird at each tick (the bird
 	# you launched only, or a split would fill the sky with dots).
@@ -535,7 +538,7 @@ func _record_collision():
 	PhysicsParams.collision = {
 		"bird": self,
 		"other": other,
-		"other_name": ("drum" if other.big else "can") if other is Pig else "block",
+		"other_name": ("big dummy" if other.big else "dummy") if other is Pig else "block",
 		"at": Units.to_m(position),
 		"other_at": Units.to_m(other.position),
 		"other_radius": other.radius_m if other is Pig else 0.0,
@@ -589,4 +592,6 @@ func _update_physics_trail(delta: float):
 
 
 func _draw():
-	BirdArt.draw_bird(self, Vector2.ZERO, _shape.radius, type, burning(), not pieces.is_empty())
+	var beat := t if state == State.FLYING and activations > 0 else -1.0   # (t restarts at each activation)
+	var clock := flight_time if state == State.FLYING else 0.0
+	BirdArt.draw_bird(self, Vector2.ZERO, _shape.radius, type, burning(), not pieces.is_empty(), clock, beat, _sped_up)

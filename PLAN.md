@@ -368,6 +368,22 @@ your number becomes something you can see next to what really happens:
   the dock); the split's "center of mass" / "unsplit bird" labels moved behind the marker; the level's
   name is big and its task under it.
 
+## Changed 2026-11-12 (later): lab-cupboard balls, crash-test dummies
+
+The round-body-with-eyes look read as bland, so each ball became an object whose shape says its job
+(`scenes/bird_art.gd`): Plain a baseball, Booster a tennis ball, Splitter a bunch of grapes (each piece one
+grape), Dropper a hot-air balloon with a sandbag, Rocket a space probe with a nozzle, Custom a stopwatch.
+The balloon, sandbag and stopwatch stay upright in flight. Targets (`pig.gd`) are crash-test dummy heads with the
+black-and-white sticker; their eyes follow the ball and widen within 4 m, X eyes when knocked out; the big one
+wears a hard hat that cracks on the first hit. On screen "can"/"drum" became "dummy"/"big dummy" (ids unchanged).
+Then (same day) the Booster became a bumblebee: a boost needs something outside to push on, and a bee has the
+air. On Space its wings beat once (a blurred stroke) and puffs of air leave behind it (ahead when it slows); in
+flight its wings flutter. A council (skeptic, art director, physics lecturer, character designer, Godot realist)
+also reviewed the whole set; its parked ideas: a star-shell Splitter with a centre-of-mass marker, a Dropper that
+pushes its ballast off (spring or downward cannon) with equal recoil arrows and a new name, a draining water
+rocket, a dial for Custom, head-and-shoulders dummies with a "J = …" tag and a heavier big dummy without the hat.
+Also fixed: Show solution now flies the right answer on control problems too, and even with a shot in the air.
+
 ## Changed 2026-11-12: own look, lecture cues, the miss in meters
 
 From a design council (five roles, three rounds). In the code a ball is still a *bird* and a can a *pig*, and

@@ -61,7 +61,7 @@ func _draw_motion(k: float):
 		total += pig.mass * v
 		points.append(pig.position)
 		if amount.length() > 0.05:
-			_linear_arrow(pig.position, amount, Color(0.6, 1.0, 0.4), "can: %s %s" % [Reveal.num(amount.length(), ["p" if momentum else "v"]), "kg·m/s" if momentum else "m/s"], 1.0, k)
+			_linear_arrow(pig.position, amount, Color(0.6, 1.0, 0.4), "dummy: %s %s" % [Reveal.num(amount.length(), ["p" if momentum else "v"]), "kg·m/s" if momentum else "m/s"], 1.0, k)
 	if momentum and points.size() == 2:
 		var middle: Vector2 = (points[0] + points[1]) / 2.0 + Vector2(0, -90) * k
 		_linear_arrow(middle, total, Color.WHITE, "Σp = %s kg·m/s" % Reveal.num(total.length(), ["p"]), 1.0, k)

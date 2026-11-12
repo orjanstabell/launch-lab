@@ -39,7 +39,7 @@ func _ready():
 	_step_button = _add_button(grid, step_frame, "While paused: run exactly one physics frame (F)")
 	_speed_button = _add_button(grid, cycle_speed, "Slow motion: 1×, 0.5×, 0.25×, 0.1× (S)")
 	_zoom_button = _add_button(grid, cycle_zoom, "Fit: keep the whole arc on screen.\n2×, 3×: follow the ball up close (Z)")
-	_action_button = _add_button(grid, cycle_action_cam, "Action cam: when a ball gets close to a can, zoom in, go into slow motion\nand show the collision on both: forces, velocities or momentum. Click to cycle (C)")
+	_action_button = _add_button(grid, cycle_action_cam, "Action cam: when a ball gets close to a dummy, zoom in, go into slow motion\nand show the collision on both: forces, velocities or momentum. Click to cycle (C)")
 	_action_button.toggle_mode = true
 	details_button = _add_button(grid, Callable(), "Show the formulas and explanations over the sky (D)")
 	details_button.toggle_mode = true
