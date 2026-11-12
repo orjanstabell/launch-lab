@@ -368,6 +368,21 @@ your number becomes something you can see next to what really happens:
   the dock); the split's "center of mass" / "unsplit bird" labels moved behind the marker; the level's
   name is big and its task under it.
 
+## Changed 2026-11-12 (latest): familiar objects that show the physics
+
+The council's parked ideas, built (`scenes/bird_art.gd`, `ability_marks.gd`, `pig.gd`):
+- **Splitter** is a firework star shell (the textbook exploding-shell problem). On Space: a burst flash, pink
+  five-point stars, and a "centre of mass" ring that flies on for 1.5 s. The ring is placed from the pieces'
+  real positions, so it stays on the old arc only when momentum is conserved. Extra pieces no longer draw as a
+  whole bunch.
+- **Dropper → Recoil**: a small cannon pointing down, button "Fire". Muzzle flash and smoke, an iron cannonball,
+  and equal Δp / −Δp arrows for a second. "Ballast" became "cannonball" in all on-screen text, practice problems
+  (symbols m_b, Δv_ball, Δv_cannon) and tooltips; the level "Ballast drop" is now "Cannon pit" (ids unchanged).
+- **Rocket** is a water-bottle rocket: blue water jets out, the exhaust puffs are droplets, the water drains.
+- **Custom** is a dial: on Space the pointer turns and a tag names the change ("g → 3.0 m/s²", "?" if hidden).
+- **Dummies** are a head on sloped shoulders; the big one is stockier with a sandbag torso (no hard hat) whose
+  first hit splits a seam and spills sand. Every real hit shows "J = … N·s" for 1.5 s, red above the threshold.
+
 ## Changed 2026-11-12 (later): lab-cupboard balls, crash-test dummies
 
 The round-body-with-eyes look read as bland, so each ball became an object whose shape says its job

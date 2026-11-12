@@ -8,7 +8,7 @@ extends RefCounted
 ##             a "preset" fills that column in for you when you pick the bird
 ##   "split":  splits into pieces (settings in PhysicsParams.split)
 ##   "rocket": fires a rocket along its heading (settings in PhysicsParams.rocket)
-##   "egg":    the Dropper throws its ballast straight down and recoils up (PhysicsParams.egg)
+##   "egg":    the Recoil cannon fires its cannonball straight down and is kicked up (PhysicsParams.egg)
 ## "action": the big button's name for the ability ("Split", ...).
 ## "hidden": not offered in the picker (the ballast is only ever a piece).
 ## "color": its trail and the big button. Every one collides as a circle.
@@ -24,19 +24,19 @@ const TYPES := {
 		"about": "One push mid-air: 30 m/s, same direction. (Preset; tweak it.)",
 	},
 	"blue": {
-		"name": "Splitter", "color": Color(0.5, 0.26, 0.62), "radius": 0.22, "ability": "split", "action": "Split",
-		"about": "Comes apart. Its center of mass keeps the old arc.",
+		"name": "Splitter", "color": Color(0.95, 0.35, 0.65), "radius": 0.22, "ability": "split", "action": "Split",
+		"about": "A firework shell: bursts into stars. Their center of mass keeps the old arc.",
 	},
 	"matilda": {
-		"name": "Dropper", "color": Color(0.2, 0.4, 0.82), "radius": 0.32, "ability": "egg", "action": "Drop",
-		"about": "Drops ballast straight down; the recoil kicks it up: Δv = (m_ballast/m)·u.",
+		"name": "Recoil", "color": Color(0.3, 0.6, 0.32), "radius": 0.32, "ability": "egg", "action": "Fire",
+		"about": "A little cannon: fires its cannonball straight down and is kicked up: Δv = (m_b/m)·u.",
 	},
 	"egg": {
-		"name": "Ballast", "color": Color(0.8, 0.66, 0.44), "radius": 0.16, "ability": "none", "hidden": true,
-		"about": "The Dropper's ballast.",
+		"name": "Cannonball", "color": Color(0.3, 0.31, 0.36), "radius": 0.16, "ability": "none", "hidden": true,
+		"about": "The Recoil cannon's cannonball.",
 	},
 	"rocket": {
-		"name": "Rocket", "color": Color(0.95, 0.5, 0.15), "radius": 0.3, "ability": "rocket", "action": "Fire rocket",
+		"name": "Rocket", "color": Color(0.2, 0.55, 0.95), "radius": 0.3, "ability": "rocket", "action": "Fire rocket",
 		"about": "Throws mass backwards to go forwards: F = v_e·ṁ, Δv = v_e·ln(m₀/m₁).",
 	},
 	"custom": {

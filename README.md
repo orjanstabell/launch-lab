@@ -56,7 +56,7 @@ Differences from the desktop version:
 
 | Key / mouse | What it does |
 |---|---|
-| **Space** | Launch; mid-air, use the ability (boost, split, rocket, drop ballast, ...) |
+| **Space** | Launch; mid-air, use the ability (boost, split, rocket, fire the cannonball, ...) |
 | Drag the waiting ball | Aim and pull back; let go to launch |
 | **PageDown** / **PageUp** | Lecture cues: next step / ask the same cue again (a presenter clicker's keys; ← → work too) |
 | **R** | Reset the level |
@@ -84,15 +84,16 @@ when you press **Space** mid-air.
 |---|---|---|
 | **Plain** | a baseball | A pure projectile: just x(t) and y(t). |
 | **Booster** | a bumblebee | One push mid-air: a new speed, same direction (a new formula segment). On Space it beats its wings once and throws air back, so the air pushes it on (air ahead if the new speed is lower). |
-| **Splitter** | a bunch of grapes | Comes apart into grapes; momentum is conserved, so their center of mass keeps the old arc. |
-| **Dropper** | a hot-air balloon with a sandbag | Drops its sandbag straight down; the recoil kicks it up. |
-| **Rocket** | a space probe with a nozzle | The rocket equation: throws mass backwards to go forwards. |
-| **Custom** | a stopwatch | Your own ability: pick what changes (g, speed, angle, mass). |
+| **Splitter** | a firework star shell | Bursts into stars; momentum is conserved, so their center of mass keeps the old arc (a ring marked "centre of mass" flies on for 1.5 s, placed from where the pieces really are). |
+| **Recoil** | a small cannon pointing down | Fires a cannonball straight down; the recoil kicks it up (equal Δp and −Δp arrows show for a second). |
+| **Rocket** | a water-bottle rocket | The rocket equation: throws mass backwards to go forwards (water jets out and the level drains). |
+| **Custom** | a dial | Your own ability: pick what changes (g, speed, angle, mass). On Space the pointer turns and a tag shows the change, e.g. "g → 3.0 m/s²" ("?" for hidden values). |
 
-The targets are crash-test dummies' heads: round, so they roll
+The targets are crash-test dummies, a head on sloped shoulders: round, so they roll
 (the black-and-white sticker shows the spin). They watch the slingshot, follow the ball
-and go wide-eyed when it gets close. The **big dummy** wears a hard hat: the
-first hit cracks it, the second knocks it out.
+and go wide-eyed when it gets close. The **big dummy** is stockier, with a sandbag torso: the
+first hit splits a seam and spills sand, the second knocks it out. Every real hit shows its
+impulse ("J = 3.1 N·s") for 1.5 s, in red if it beat the knock-out threshold.
 
 A shot that comes down without hitting leaves a tape measure from where its path came
 closest to the nearest dummy, with the distance in big figures ("Missed by 1.8 m:
@@ -139,7 +140,7 @@ the numbers.
 | Energy is conserved | **Energy**. Launch: KE turns into PE and back, the total line stays flat until the crash. |
 | Explosions conserve momentum | **Splitter**, **Forces & momentum**. Split mid-air: the pieces' center of mass stays on the old arc. Untick *Conserve momentum* to see what happens to it if the pieces just keep their speed. |
 | The rocket equation | **Rocket**, **Forces & momentum**, press **D**: Δv = v_e·ln(m₀/m₁), and ball + exhaust together keep the momentum the ball alone would have had. |
-| Recoil | **Dropper**, **Forces & momentum**: throwing the ballast down kicks it up by (m_ballast/m)·u. |
+| Recoil | **Recoil**, **Forces & momentum**: firing the cannonball down kicks the cannon up by (m_b/m)·u. |
 | Newton's 3rd law in a collision | Action cam (**C**) on *forces*, or the *Last hit* arrows: the pushes on ball and dummy are equal and opposite. |
 | Mass matters at launch | Press *Spring launch*: v₀ = Δx·√(k/m), so a heavier ball leaves the same spring slower. |
 | Measure g on another planet | *Hide values…* → `g` (right-hand column), press *Randomize*, then measure the range against the rulers. Or Practice → *Mystery planet*. |
@@ -191,6 +192,7 @@ autoload/reveal.gd        hiding values: every number on screen is formatted her
 scenes/bird.gd            follows kinematics.gd while flying; abilities; the hand-over
                           to the physics engine on the first hit
 scenes/bird_art.gd        how every ball looks (also drawn on the slingshot)
+scenes/ability_marks.gd   what appears around a ball on Space (burst, recoil arrows, dial tag)
 scenes/pig.gd             the dummies (small and big)
 ui/shot_marks.gd          the miss as a tape measure; where a cue's ability will fire
 ui/ui_theme.gd            how the dock looks: colours, buttons, the lit "on" state

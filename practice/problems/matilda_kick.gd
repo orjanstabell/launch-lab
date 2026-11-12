@@ -9,7 +9,7 @@ var throw_speed := 15.0
 
 func _init():
 	topic = "Momentum"
-	title = "Dropper: the kick from throwing the ballast"
+	title = "Recoil: the kick from firing the cannonball"
 	bird_type = "matilda"
 	answers = [{"label": "kick Δv", "unit": "m/s", "min": 0.0, "max": 100.0, "step": 0.01}]
 	hidden_keys = ["v", "p"]
@@ -26,17 +26,17 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "The Dropper weighs %s kg with its ballast. It throws the %s kg ballast straight down at %s m/s relative to itself.\nHow much does its upward speed change? (Check: it throws at %s s into the flight, next to a ghost with your kick.)" % [n(launch["m"]), n(egg_mass), n(throw_speed), n(THROW_AT, 1)]
+	return "The Recoil cannon weighs %s kg with its cannonball. It fires the %s kg cannonball straight down at %s m/s relative to itself.\nHow much does its upward speed change? (Check: it throws at %s s into the flight, next to a ghost with your kick.)" % [n(launch["m"]), n(egg_mass), n(throw_speed), n(THROW_AT, 1)]
 
 
 func solution_steps() -> Array[String]:
 	var bird_mass: float = launch["m"] - egg_mass
 	return [
-		"The throw is instant, so momentum is conserved:  m_ballast·Δv_ballast + m_body·Δv_body = 0",
-		"The ballast leaves at u relative to the Dropper:  Δv_ballast − Δv_body = u (downwards)",
-		"Together:  Δv_body = (m_ballast / m)·u  upwards,  Δv_ballast = (m_body / m)·u  downwards",
-		"Δv_body = %s / %s · %s = %s m/s up" % [n(egg_mass), n(launch["m"]), n(throw_speed), n(correct[0])],
-		"(The ballast gets %s m/s extra downwards: the lighter one gets the bigger change.)" % n(bird_mass / launch["m"] * throw_speed),
+		"The throw is instant, so momentum is conserved:  m_b·Δv_ball + m_body·Δv_cannon = 0",
+		"The cannonball leaves at u relative to the cannon:  Δv_ball − Δv_cannon = u (downwards)",
+		"Together:  Δv_cannon = (m_b / m)·u  upwards,  Δv_ball = (m_body / m)·u  downwards",
+		"Δv_cannon = %s / %s · %s = %s m/s up" % [n(egg_mass), n(launch["m"]), n(throw_speed), n(correct[0])],
+		"(The cannonball gets %s m/s extra downwards: the lighter one gets the bigger change.)" % n(bird_mass / launch["m"] * throw_speed),
 	]
 
 

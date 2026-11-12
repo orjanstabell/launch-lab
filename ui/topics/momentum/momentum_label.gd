@@ -29,8 +29,8 @@ func _build_lines() -> Array:
 			lines.append("with momentum conserved, it stays on the old arc.")
 		elif bird.ability_kind() == "egg":
 			lines.append("")
-			lines.append("Press Space to throw the ballast down. Momentum is conserved,")
-			lines.append("so the throw kicks the Dropper up: recoil, like a gun.")
+			lines.append("Press Space to fire the cannonball down. Momentum is conserved,")
+			lines.append("so firing kicks the cannon up: recoil.")
 	else:
 		lines.append_array(_split_lines(bird))
 	if is_instance_valid(bird) and bird.ability_kind() == "rocket":
@@ -146,7 +146,7 @@ func _compact_lines(bird: Bird) -> Array:
 	var p_after: Vector2 = info["p_after"]
 	var lost := 1.0 - p_after.length() / p_before.length() if p_before.length() > 1e-6 else 0.0   # (at rest: nothing to lose)
 	var status := "momentum conserved ✓" if absf(lost) < 0.001 else "%s%% momentum lost ✗" % String.num(lost * 100.0, 1)
-	var what := "Ballast dropped" if info.get("kind") == "egg" else "Split into %d" % info["pieces"]
+	var what := "Cannonball fired" if info.get("kind") == "egg" else "Split into %d" % info["pieces"]
 	var lines := ["%s: %s,  KE %s → %s J" % [what, status, _n(info["ke_before"], ["m", "v", "E"]), _n(info["ke_after"], ["m", "v", "E"])]]
 	var total_p := Vector2.ZERO
 	for piece in bird.pieces:
@@ -170,9 +170,9 @@ func _split_lines(bird: Bird) -> Array:
 	var header: String
 	if info.get("kind") == "egg":
 		var masses: Array = info["masses"]
-		header = "The Dropper threw %s kg of ballast down at u = %s m/s (it is now %s kg)" % [String.num(masses[1], 2), String.num(info["egg_speed"], 1), String.num(masses[0], 2)]
+		header = "The cannon fired a %s kg cannonball down at u = %s m/s (it is now %s kg)" % [String.num(masses[1], 2), String.num(info["egg_speed"], 1), String.num(masses[0], 2)]
 		if info.get("straight_down", false):
-			header += "\n  and backwards, so it falls straight down: the Dropper speeds up forwards ×%s (vₓ' = vₓ·m/m_body)" % String.num((masses[0] + masses[1]) / masses[0], 2)
+			header += "\n  and backwards, so it falls straight down: the cannon speeds up forwards ×%s (vₓ' = vₓ·m/m_body)" % String.num((masses[0] + masses[1]) / masses[0], 2)
 	else:
 		header = "Splitter split: %d pieces of %s kg, ±%s°" % [info["pieces"], _n(bird.mass_now(), ["m"]), String.num(info["spread"], 1)]
 	var lines := [

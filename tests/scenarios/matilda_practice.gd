@@ -33,7 +33,7 @@ func run():
 	main.show_topic(3)
 	var panel = main.find_children("*", "PracticePanel", true, false)[0]
 	for i in panel._picker.item_count:
-		if "drop the ballast straight down" in panel._picker.get_item_text(i): panel._picker.select(i)
+		if "fire the cannonball straight down" in panel._picker.get_item_text(i): panel._picker.select(i)
 	panel.new_problem()
 	await frames(5)
 	var c = panel.problem.correct

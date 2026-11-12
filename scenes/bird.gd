@@ -35,6 +35,8 @@ var t := 0.0   # seconds since the current segment started
 var flight_time := 0.0   # seconds since launch
 var activations := 0
 var _sped_up := true   # the last "change" ability made it faster (the bee's air goes back, not ahead)
+var changes: Array[String] = []   # Custom: what the dial changed, as tags ("g → 3.7 m/s²")
+var marks: AbilityMarks   # what Space does around the ball (the burst, the recoil arrows, the tags)
 var trail: Trail
 var hit_position := Vector2.INF   # meters: where it first hit something (INF = hasn't yet)
 var exhaust: RocketExhaust = null   # the rocket bird's exhaust puffs, once it fires
@@ -102,6 +104,9 @@ func _ready():
 	trail.start_formula_segment(position)
 	_add_sensor()
 	if not is_piece:
+		marks = AbilityMarks.new()
+		marks.bird = self
+		add_child(marks)
 		PhysicsParams.start_flight(self)
 
 
@@ -211,9 +216,14 @@ func activate():
 		return
 	match ability_kind():
 		"change":
-			var speed_before := Kinematics.velocity(segment, t).length()
+			var before := segment
+			var t_before := t
+			var mass_before := mass_now()
 			_start_segment(next_segment())
-			_sped_up = Kinematics.velocity(segment, 0.0).length() >= speed_before
+			var v_before := Kinematics.velocity(before, t_before)
+			_sped_up = Kinematics.velocity(segment, 0.0).length() >= v_before.length()
+			if type == "custom":
+				changes = _changes(v_before, before.g, mass_before)
 		"split":
 			_split()
 		"egg":
@@ -474,8 +484,11 @@ func _fly(delta: float):
 	flight_time += delta
 	position = to
 	rotation = Units.to_px(Kinematics.velocity(segment, t)).angle()   # face where it's going
-	if segment.is_rocket() or type in BirdArt.UPRIGHT or type == "yellow":
-		queue_redraw()   # the flame comes and goes; upright pictures undo the new turn; the bee's wings flutter
+	if segment.is_rocket() or type in BirdArt.UPRIGHT or type in ["yellow", "blue"]:
+		queue_redraw()   # the jet comes and goes; upright pictures undo the new turn; wings flutter, fuses fizz
+	if marks != null and activations > 0:
+		marks.rotation = -rotation   # level, however the ball has turned
+		marks.queue_redraw()
 	trail.add_point(position)
 	# The strobe: a dot wherever the formula puts the bird at each tick (the bird
 	# you launched only, or a split would fill the sky with dots).
@@ -507,6 +520,8 @@ func _cast_motion(from: Vector2, to: Vector2) -> float:
 func _hand_over_to_physics():
 	mass = mass_now()   # (before the state changes: a rocket keeps the mass it has left)
 	state = State.PHYSICS
+	if marks != null:
+		marks.queue_redraw()   # (the marks only show in flight)
 	hit_position = Units.to_m(position)
 	collision_layer = Layers.BIRD
 	collision_mask = Layers.GROUND | Layers.BLOCKS
@@ -592,6 +607,34 @@ func _update_physics_trail(delta: float):
 
 
 func _draw():
-	var beat := t if state == State.FLYING and activations > 0 else -1.0   # (t restarts at each activation)
-	var clock := flight_time if state == State.FLYING else 0.0
-	BirdArt.draw_bird(self, Vector2.ZERO, _shape.radius, type, burning(), not pieces.is_empty(), clock, beat, _sped_up)
+	var flying := state == State.FLYING
+	BirdArt.draw_bird(self, Vector2.ZERO, _shape.radius, type, {
+		"spent": is_piece or not pieces.is_empty(),
+		"clock": flight_time if flying else 0.0,
+		"beat": t if flying and activations > 0 else -1.0,   # (t restarts at each activation)
+		"faster": _sped_up,
+		"fuel": fuel_left(),
+		"spraying": burning(),
+	})
+
+
+## The water rocket's water left, 1 (full) → 0 (all thrown out).
+func fuel_left() -> float:
+	if segment.is_rocket():
+		return clampf(1.0 - t / segment.burn_time, 0.0, 1.0)
+	return 1.0 if activations == 0 else 0.0
+
+
+## Custom's tags: each value the dial changed, with its new value.
+func _changes(v_before: Vector2, g_before: float, m_before: float) -> Array[String]:
+	var result: Array[String] = []
+	var v_after := Kinematics.initial_velocity(segment)
+	if not is_equal_approx(segment.g, g_before):
+		result.append("g → %s m/s²" % Reveal.num(segment.g, ["g"], 1))
+	if absf(v_after.length() - v_before.length()) > 0.01:
+		result.append("v → %s m/s" % Reveal.num(v_after.length(), ["v0"], 1))
+	if absf(angle_difference(v_after.angle(), v_before.angle())) > 0.01:
+		result.append("θ → %s°" % Reveal.num(segment.theta_deg, ["theta"], 1))
+	if not is_equal_approx(segment.m, m_before):
+		result.append("m → %s kg" % Reveal.num(segment.m, ["m"], 1))
+	return result

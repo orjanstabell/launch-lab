@@ -47,7 +47,7 @@ const ROCKET_DEFINITIONS := {
 ## The Dropper's egg: its mass (part of m) and how fast she throws it down, relative
 ## to herself. Momentum is conserved, so the throw kicks her up.
 const EGG_DEFINITIONS := {
-	"mass": {"label": "Ballast mass", "symbol": "m_b", "unit": "kg", "default": 0.4, "min": 0.05, "max": 9.0, "step": 0.05},
+	"mass": {"label": "Cannonball mass", "symbol": "m_b", "unit": "kg", "default": 0.4, "min": 0.05, "max": 9.0, "step": 0.05},
 	"speed": {"label": "Throw speed (relative)", "symbol": "u", "unit": "m/s", "default": 15.0, "min": 1.0, "max": 60.0, "step": 0.5},
 }
 

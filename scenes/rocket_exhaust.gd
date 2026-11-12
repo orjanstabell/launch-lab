@@ -1,6 +1,6 @@
 class_name RocketExhaust
 extends Node2D
-## What a burning rocket bird throws out the back. The rocket's motion is exact
+## What a firing water rocket throws out the back: its water. The rocket's motion is exact
 ## maths (see Kinematics), so this is only a picture of the exhaust: 30 "puffs" a
 ## second, each carrying the fuel burnt in that time (ṁ·Δt) at the bird's
 ## velocity minus v_e along the thrust, then flying as a projectile.
@@ -55,4 +55,4 @@ func _draw():
 	var k := DrawUtil.size_factor(self)
 	for puff in puffs:
 		var fade: float = 1.0 - (_time - puff["born"]) / LIFETIME
-		draw_circle(Units.to_px(puff_position(puff)), 3.0 * k, Color(0.9, 0.6, 0.3, 0.8 * fade))
+		draw_circle(Units.to_px(puff_position(puff)), 3.0 * k, Color(BirdArt.WATER, 0.85 * fade))   # water drops

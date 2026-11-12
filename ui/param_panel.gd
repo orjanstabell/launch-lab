@@ -191,11 +191,11 @@ func _add_egg_row(box: VBoxContainer):
 	_egg_straight = CheckBox.new()
 	_egg_straight.text = "straight down"
 	_egg_straight.focus_mode = Control.FOCUS_NONE
-	_egg_straight.tooltip_text = "Off: it just lets go, so the ballast keeps the forward speed and lands ahead.\nOn: it also throws the ballast backwards, so the ballast falls straight down on screen.\nMomentum then pushes the Dropper forwards: vₓ' = vₓ·m/m_body."
+	_egg_straight.tooltip_text = "Off: it fires straight down, so the cannonball keeps the forward speed and lands ahead.\nOn: it also fires it backwards, so the cannonball falls straight down on screen.\nMomentum then pushes the cannon forwards: vₓ' = vₓ·m/m_body."
 	_egg_straight.toggled.connect(_on_egg_straight_toggled)
 	_egg_row.add_child(_egg_straight)
 	_egg_result = Label.new()
-	_egg_result.tooltip_text = "Momentum is conserved: m_ballast·Δv_ballast + m_body·Δv_body = 0,\nand the ballast leaves at u relative to the Dropper. So the Dropper is kicked up by (m_ballast/m)·u\nand the ballast gets (m_body/m)·u extra downwards."
+	_egg_result.tooltip_text = "Momentum is conserved: m_b·Δv_ball + m_body·Δv_cannon = 0,\nand the cannonball leaves at u relative to the cannon. So the cannon is kicked up by (m_b/m)·u\nand the cannonball gets (m_body/m)·u extra downwards."
 	_egg_result.mouse_filter = Control.MOUSE_FILTER_STOP
 	_egg_row.add_child(_egg_result)
 

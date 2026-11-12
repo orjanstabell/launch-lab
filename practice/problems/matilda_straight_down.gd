@@ -14,7 +14,7 @@ var speed := 10.0
 
 func _init():
 	topic = "Momentum"
-	title = "Dropper: what would it take to drop the ballast straight down?"
+	title = "Recoil: what would it take to fire the cannonball straight down?"
 	kind = "control"
 	bird_type = "matilda"
 	answers = [
@@ -36,7 +36,7 @@ func generate() -> bool:
 
 
 func question() -> String:
-	return "The Dropper (%s kg with its %s kg ballast) flies at %s m/s forwards. The ballast should fall STRAIGHT down, with no forward speed.\nHow fast must it be thrown backwards (relative to the Dropper), and how much kinetic energy does that take? (Forward motion only.)" % [n(launch["m"]), n(egg_mass), n(speed)]
+	return "The Recoil cannon (%s kg with its %s kg cannonball) flies at %s m/s forwards. The cannonball should fall STRAIGHT down, with no forward speed.\nHow fast must it be thrown backwards (relative to the cannon), and how much kinetic energy does that take? (Forward motion only.)" % [n(launch["m"]), n(egg_mass), n(speed)]
 
 
 ## The egg's forward speed after a backward throw at relative speed w:
@@ -52,7 +52,7 @@ func judge(given: Array[float]) -> Dictionary:
 	var energy_note := "" if energy_right else "  ✗ but the energy is too %s" % ("high" if given[1] > correct[1] else "low")
 	if straight:
 		return {"ok": energy_right, "message": "✓ Straight down!" + (" And the energy is right." if energy_right else energy_note)}
-	return {"ok": false, "message": "✗ The ballast drifted %s at %s m/s%s" % ["forwards" if drift > 0 else "backwards", n(absf(drift), 1), energy_note]}
+	return {"ok": false, "message": "✗ The cannonball drifted %s at %s m/s%s" % ["forwards" if drift > 0 else "backwards", n(absf(drift), 1), energy_note]}
 
 
 func tap_time(_given: Array[float]) -> float:
@@ -72,10 +72,10 @@ func solution_steps() -> Array[String]:
 	var bird_mass: float = launch["m"] - egg_mass
 	var reduced: float = egg_mass * bird_mass / launch["m"]
 	return [
-		"Momentum forwards is conserved: m·vₓ = m_ballast·0 + m_body·vₓ'",
+		"Momentum forwards is conserved: m·vₓ = m_b·0 + m_body·vₓ'",
 		"vₓ' = vₓ·m / m_body = %s·%s / %s = %s m/s  (it speeds up!)" % [n(speed), n(launch["m"]), n(bird_mass), n(correct[0])],
-		"Relative to the Dropper the ballast moves at 0 − vₓ' = −%s m/s: thrown back exactly as fast as the Dropper ends up flying" % n(correct[0]),
-		"Energy: ΔKE = ½·m_body·vₓ'² − ½·m·vₓ² = ½·m·vₓ²·(m_ballast / m_body)",
+		"Relative to the cannon the cannonball moves at 0 − vₓ' = −%s m/s: thrown back exactly as fast as the cannon ends up flying" % n(correct[0]),
+		"Energy: ΔKE = ½·m_body·vₓ'² − ½·m·vₓ² = ½·m·vₓ²·(m_b / m_body)",
 		"ΔKE = ½·%s·%s²·(%s / %s) = %s J  (work done by the throw)" % [n(launch["m"]), n(speed), n(egg_mass), n(bird_mass), n(correct[1])],
-		"(Neat: a throw at relative speed w always costs ½·μ·w², with μ = m_ballast·m_body/m = %s kg.)" % n(reduced, 3),
+		"(Neat: a throw at relative speed w always costs ½·μ·w², with μ = m_b·m_body/m = %s kg.)" % n(reduced, 3),
 	]

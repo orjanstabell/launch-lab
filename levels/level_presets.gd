@@ -95,7 +95,7 @@ static func cue_planet() -> Dictionary:
 ## The first level: a small tower with the dummy on top.
 static func tower() -> Dictionary:
 	var level := Level.blank("Tower")
-	level["description"] = "Knock the dummy off its tower, then take on the big one in the hard hat (it survives one hit)."
+	level["description"] = "Knock the dummy off its tower, then take on the big one (it survives one hit)."
 	add_tower(level, 25.0)
 	Level.add_pig(level, Vector2(29.5, Pig.BIG_RADIUS_M), true)
 	return level
@@ -149,8 +149,8 @@ static func three_pigs() -> Dictionary:
 
 
 static func egg_drop() -> Dictionary:
-	var level := Level.blank("Ballast drop")
-	level["description"] = "The dummy hides in a deep pit. Fly the Dropper over it and drop the ballast in."
+	var level := Level.blank("Cannon pit")
+	level["description"] = "The dummy hides in a deep pit. Fly the Recoil cannon over it and fire the cannonball down into it."
 	level["launch"] = {"g": 9.81, "v0": 17.0, "theta": 50.0, "y0": 1.0, "m": 1.0}
 	level["bird_type"] = "matilda"
 	Level.add_block(level, Vector2(0.4, 3.0), Vector2(21.0, 1.5))
