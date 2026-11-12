@@ -401,6 +401,61 @@ the ids in level files are unchanged, so old files load; only what's on screen c
   call 2"; "Not quite", "try again" and the separate too-high/too-low hint are gone.
 - Test: `tests/scenarios/cues.gd` (cues, strobe, auto-stop, miss).
 
+## Parked ideas from the design councils (2026-11-11 and 2026-11-12)
+
+Not built. Each has the reason it was parked, so it can be picked up again with that in mind.
+
+**Closest to what exists now**
+- **Twin launches** as cues: two bodies launched together, one variable apart (drop vs horizontal throw, 1 kg vs
+  5 kg, 30° vs 60°). True formulas only, so it confronts a misconception without fake physics. Needs a second
+  body: proposed as an optional `ghost` key on a level, through Practice's `Problem.ghost()`. The dock can follow
+  only one body; a pure drop needs v₀ = 0, below the panel's minimum. Draw them as a filled body and an outline,
+  since the 1 kg and 5 kg arcs overlap exactly.
+- **"Which arrows act here?"** as a second step on the apex cue: the ball bare, then only m·g (the impetus
+  misconception: no "force of the throw"). Needs a staged reveal.
+- **Energy vs momentum cue:** same spring pull, 1 kg and 4 kg: same kinetic energy, different momentum.
+- **Fresh numbers after a miss** in Practice, and only the first call on a set of numbers counts (same-number
+  retries can still be bisected; the verdict now only names which call it was).
+- **A miss message for a can that is grazed but not knocked out**, and for shots stopped by a wall.
+
+**Game elements**
+- **"Shots N · Formula wrong 0" counter:** the flight is computed from the formula, so it can't lose; unqualified
+  it says models are never wrong. Only with the model's scope in the label ("no air").
+- **Room vs Formula / Class vs Nature tally:** a score the room is scripted to lose on misconception questions,
+  and it rewards voting with the crowd.
+- **Vote keys (A/B/C) with the chosen option flown as a ghost:** only honest where the wrong option is a definite
+  path (gravity off, same spring, the unsplit arc); keys 1–6, C and D are taken.
+- **Goalposts** (a band around the call that narrows), **Two calls** (fly both answers), **27 lamps**, **a
+  Sure / Not sure call:** per-problem machinery across 27 kinds, or a badge board; a "close" band praises a
+  method error such as a forgotten y₀.
+- **Scout, then strike** (hidden g, a few scout shots, one real shot): one exact reading always gives g, so the
+  budget means nothing unless readings are coarse; and scoring few readings rewards bad lab practice.
+- **Which arc?** (one true arc, three from wrong formulas): as a system it is a second physics engine.
+- **60-second streak run, stars, saved progress, a Teach/Play split:** timers reward guessing; saves live in one
+  browser; two modes means every screen twice.
+- **Encore ghost** (rerun a cue with one change, the old trail kept grey), **held-breath slow-down** before the
+  landing, **near-miss ring**, **sound** (generated audio may crackle in the web build).
+
+**Lecture logistics**
+- **Teacher-made decks:** web saves stay in the browser they were made in; if asked for, one exported JSON file
+  opened with Import, with every load still resetting the view.
+- **Per-student seeded exit ticket with a receipt for the LMS:** needs a phone layout and touch aiming; the
+  receipt can be forged in the browser.
+- **Monkey-and-hunter cue:** a rigid-body target against a formula-driven ball can miss on stage.
+- **Identical replay of a shot:** only the formula part replays exactly; physics after a contact does not.
+- **Plan the ability's trigger time before launch** instead of pressing Space: loses the live moment; lives on as
+  the cues' scripted abilities and as a Practice problem.
+
+**Look and voice**
+- **Chalkboard look** (dark slate, thin lines): washes out on a projector. Kept from it: a paused screen should
+  read like a textbook figure.
+- **Energy rings on the ball; body size ∝ mass:** rings are unreadable on a small moving disc; size ∝ mass is
+  still open.
+- **Names Lump / Kick / Cluster / Coil:** each needs explaining. **An "annual re-certification" premise:** README
+  at most, never in the UI.
+- **Upright cans** (a rectangle collider): changes the physics and the knock-out thresholds.
+- **Motion personality** (squash on impact, eyes widening at the top): only the crumple of a knocked-out can was built.
+
 ## Possible next steps (not started)
 
 - Class mode: a level that opens straight into a practice problem; limit attempts or hide Show solution; a score.
